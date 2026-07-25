@@ -1,0 +1,97 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+// Connection string is loaded from User Secrets in Development
+// (never committed to source control — see dotnet user-secrets).
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+// Without this, .NET remaps standard claims (e.g. "sub" -> nameidentifier URI)
+// on incoming tokens, so User.FindFirst("sub") wouldn't find anything.
+// Disabling it keeps claim names identical to what we put in the token.
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    // Key, Issuer and Audience loaded from user secrets in development,
+    // ValidateIssuer used to ensure token came from this api,
+    // ValidateAudience ensures that the token is valid for this api only, checking against the specific audience value,
+    // ValidateLifetime disalowes the use of expired tokens,
+    // ValidateIssuerSigningKey recomputes what the signature should be using our secret, tokens not created with our secret wont work as the signature will be invalid.
+    // ClockSkew default is 5 minutes (to account for server time drift), Set to 0 here so token expiry is enforced exactly
+    // acceptable as both issuing and validating server are the same
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+app.UseCors("AllowReactApp");
+app.MapControllers();
+app.UseAuthentication();
+app.UseAuthorization();
+
+
+// RoleManager is normally scoped to an HTTP request, but this seeding code
+// runs once at startup with no request in progress — so we manually create
+// a scope just for this block, then let it dispose automatically via 'using'.
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    string [] roles = ["User", "Admin"];
+    
+    foreach (var role in roles)
+    {
+        if  (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
+app.Run();

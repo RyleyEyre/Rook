@@ -1,0 +1,228 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+    gap: 40px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 6px;
+}
+
+.nav-item {
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.nav-item>a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: .15s;
+}
+
+.nav-item:hover>a {
+    color: var(--color-text);
+}
+
+.nav-dropdown {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 170px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+.nav-item:hover .nav-dropdown {
+    display: flex;
+}
+
+.nav-dropdown a {
+    padding: 12px 16px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    text-decoration: none;
+    transition: .15s;
+}
+
+.nav-dropdown a:hover {
+    background: rgba(var(--color-accent-rgb), .15);
+    color: var(--color-text);
+}
+
+.nav-user {
+    position: relative;
+}
+
+.nav-user-trigger {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 10px;
+    transition: .15s;
+}
+
+.nav-user-trigger:hover {
+    background: rgba(var(--color-accent-rgb), .08);
+}
+
+.nav-user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.nav-username {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.nav-role {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.nav-user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 150px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+.nav-dropdown-section {
+    padding: 8px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.nav-dropdown-section:last-child {
+    border-bottom: none;
+}
+
+.nav-dropdown-label {
+    display: block;
+    padding: 4px 10px 8px;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.nav-dropdown-section button {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    color: var(--color-text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: .15s;
+}
+
+.nav-dropdown-section button:hover {
+    background: rgba(var(--color-accent-rgb), .15);
+}
+
+.nav-flyout-item {
+    position: relative;
+}
+
+.nav-flyout-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-text);
+    transition: background .15s;
+}
+
+.nav-flyout-trigger:hover {
+    background: rgba(var(--color-accent-rgb), .15);
+}
+
+.nav-flyout-arrow {
+    position: absolute;
+    left: 12px;
+    color: var(--color-text-muted);
+}
+
+.nav-flyout {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    right: 100%;
+    left: auto;
+    width: 180px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+.nav-flyout-item:hover .nav-flyout {
+    display: flex;
+}
+
+.nav-flyout-item:hover .nav-flyout {
+    display: flex;
+}
+
+.theme-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.theme-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.theme-check {
+    color: var(--color-accent);
+    font-weight: 700;
+}

@@ -1,0 +1,31 @@
+.loading-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+
+.loading-emblem .pixel {
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.loading-message {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scale(0.85);
+    }
+}
+
