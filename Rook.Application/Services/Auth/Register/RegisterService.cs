@@ -11,8 +11,6 @@ using FluentValidation;
 namespace Rook.Application.Services.Auth.Register;
 
 public class RegisterService(
-    ApplicationDbContext dbContext,
-    IConfiguration configuration,
     UserManager<ApplicationUser> userManager,
     IValidator<RegisterCommand> validator
 )

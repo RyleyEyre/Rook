@@ -11,6 +11,7 @@ using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Application.Services.Auth.Login;
 using Rook.Application.Services.Auth.Register;
+using Rook.Application.Services.Auth.Logout;
 
 namespace Rook.Api.Controllers;
 
@@ -18,7 +19,9 @@ namespace Rook.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController(
     LoginService loginService,
+    LogoutService logoutService,
     RegisterService registerService,
+    
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration, 
     ApplicationDbContext dbContext
@@ -55,21 +58,10 @@ public class AuthController(
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout(LogoutRequest request)
+    public async Task<IActionResult> Logout(LogoutCommand command)
     {
-        var storedToken = await dbContext.RefreshTokens
-            .FirstOrDefaultAsync(refreshToken => refreshToken.Token == request.RefreshToken);
-        
-        if (storedToken is null || !storedToken.IsActive)
-        {
-            return Unauthorized("Invalid or expired refresh token");
-        }
-
-        storedToken.IsRevoked = true;
-
-        await dbContext.SaveChangesAsync();
-
-        return Ok("Successfully logged out");
+        await logoutService.Logout(command);
+        return NoContent(); // 204
     }
 
     [HttpPost("refresh")]
