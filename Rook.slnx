@@ -2,6 +2,7 @@
   <Folder Name="/Rook.Api/">
     <Project Path="Rook.Api/Rook.api.csproj" />
   </Folder>
+  <Project Path="Rook.Application/Rook.Application.csproj" />
   <Project Path="Rook.Domain/Rook.Domain.csproj" />
   <Project Path="Rook.Infrastructure/Rook.Infrastructure.csproj" />
 </Solution>
