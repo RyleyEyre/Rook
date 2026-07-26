@@ -4,7 +4,7 @@ using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Infrastructure.Authentication;
 using Rook.Domain.Entities;
-using Rook.Domain.Exceptions;
+using Rook.Domain.Exceptions.Auth;
 using FluentValidation;
 
 namespace Rook.Application.Services.Auth.Login;

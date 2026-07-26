@@ -5,9 +5,9 @@ POST {{baseUrl}}/api/Auth/register
 Content-Type: application/json
 
 {
-  "username": "Test1",
-  "email": "test3@example.com",
-  "password": "Password1!"
+  "username": "Test4",
+  "email": "test4@example.com",
+  "password": "Password111111!"
 }
 
 ### Login
@@ -15,8 +15,8 @@ POST {{baseUrl}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "username": "",
-  "password": ""
+  "username": "Test4",
+  "password": "Password111111!"
 }
 
 ### Access secure endpoint WITHOUT a token (expect 401)

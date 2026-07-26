@@ -1,4 +1,4 @@
-namespace Rook.Domain.Exceptions;
+namespace Rook.Domain.Exceptions.Auth;
 
 public sealed class InvalidLoginException : Exception
 {

@@ -10,6 +10,7 @@ using Rook.Api.Dtos;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Application.Services.Auth.Login;
+using Rook.Application.Services.Auth.Register;
 
 namespace Rook.Api.Controllers;
 
@@ -17,6 +18,7 @@ namespace Rook.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController(
     LoginService loginService,
+    RegisterService registerService,
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration, 
     ApplicationDbContext dbContext
@@ -24,39 +26,17 @@ public class AuthController(
 {
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
-        var existingUserByUsername = await userManager.FindByNameAsync(request.Username);
-
-        if (existingUserByUsername is not null)
-        {
-            return Conflict("A user with this username already exists.");
-        }
-
-        var existingUserByEmail = await userManager.FindByEmailAsync(request.Email);
-
-        if (existingUserByEmail is not null)
-        {
-            return Conflict("A user with this email already exists.");
-        }
-
-        var user = new ApplicationUser
-        {
-            UserName = request.Username,
-            Email = request.Email
-        };
-        
-        // Checked explicitly so we can return a clear 409 rather than a generic
-        // CreateAsync failure buried in result.Errors.
-        var result = await userManager.CreateAsync(user, request.Password);
-
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-        await userManager.AddToRoleAsync(user, "User");
-
-        return Ok("User registered successfully.");
+        var result = await registerService.Register(command);
+        return Ok(
+            new
+            {
+                success = true,
+                message = "Registration Successful",
+                data = result,
+            }
+        );
     }
 
     [HttpPost("login")]
