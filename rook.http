@@ -15,7 +15,7 @@ POST {{baseUrl}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "username": ,
+  "username": "Test1",
   "password": "Password1!"
 }
 

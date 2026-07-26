@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Rook.Infrastructure.Data;
@@ -6,18 +5,15 @@ using Rook.Infrastructure.Identity;
 using Rook.Infrastructure.Authentication;
 using Rook.Domain.Entities;
 
-namespace Rook.Application.Handlers.Auth.Login;
+namespace Rook.Application.Services.Auth.Login;
 
-public class LoginHandler(
+public class LoginService(
     ApplicationDbContext dbContext,
     IConfiguration configuration,
     UserManager<ApplicationUser> userManager
-) : IRequestHandler<LoginCommand, LoginResponse>
+)
 {
-    public async Task<LoginResponse> Handle(
-        LoginCommand request,
-        CancellationToken cancellationToken
-    )
+    public async Task<LoginResponse> Login(LoginCommand request)
     {
         var user = await userManager.FindByNameAsync(request.Username);
         if (user is null)

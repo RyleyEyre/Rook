@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Rook.Application.Handlers.Auth.Login;
+namespace Rook.Application.Services.Auth.Login;
 
 public class LoginValidator : AbstractValidator<LoginCommand>
 {

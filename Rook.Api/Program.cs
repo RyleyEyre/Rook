@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Rook.Api.Middleware;
-using Rook.Application.Handlers.Auth.Login;
+using Rook.Application.Services.Auth.Login;
 using FluentValidation;
 
 
@@ -26,7 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginHandler).Assembly));
+builder.Services.AddScoped<LoginService>();
 builder.Services.AddValidatorsFromAssembly(typeof(LoginValidator).Assembly);
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -79,11 +79,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseCors("AllowReactApp");
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseExceptionHandler();
+
 
 
 // RoleManager is normally scoped to an HTTP request, but this seeding code

@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +9,14 @@ using Microsoft.IdentityModel.Tokens;
 using Rook.Api.Dtos;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
-using Rook.Application.Handlers.Auth.Login;
+using Rook.Application.Services.Auth.Login;
 
 namespace Rook.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(
-    IMediator mediator,
+    LoginService loginService,
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration, 
     ApplicationDbContext dbContext
@@ -63,7 +62,7 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
-        var result = await mediator.Send(command);
+        var result = await loginService.Login(command);
         return Ok(
             new
             {
