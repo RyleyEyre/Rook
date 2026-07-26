@@ -9,7 +9,8 @@ import { login } from '../../api/authApi';
 function LoginForm(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [missingFields, setMissingFields] = useState([]);
 
     
     // SetUsername is destructured to setAuthUsername as setUsername is already part of the useState above.
@@ -20,23 +21,50 @@ function LoginForm(){
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const missing = [];
+
+        if (!username) missing.push("username");
+        if (!password) missing.push("password");
+
+        if (missing.length > 0) {
+            setMissingFields(missing);
+
+            if (missing.length === 2) {
+                setErrorMessage("Please enter your username and password.");
+            } else if (missing.includes("username")) {
+                setErrorMessage("Please enter your username.");
+            } else {
+                setErrorMessage("Please enter your password.");
+            }
+            clearTimeout(timeoutRef.current);
+
+            timeoutRef.current = setTimeout(() => {
+                setMissingFields([]);
+                setErrorMessage("");
+            }, 3000);
+            return;
+        }
+
+        setMissingFields([]);
         const loggedIn = await login(username, password)
         if (loggedIn.success) {
             setAccessToken(loggedIn.accessToken);
             setAuthUsername(loggedIn.username);
             setRole(loggedIn.role);
             setUserProfile(loggedIn.userProfile);
-
             navigate('/hello');
+            return;
         }
 
         clearTimeout(timeoutRef.current);
 
-        if (loggedIn.status === 401) {
-            setErrorMessage("Incorrect username or password");
+        if (loggedIn.status === 401 || loggedIn.status === 400) {
+            console.log(loggedIn.status)
+            setErrorMessage("Incorrect username or password.");
         } else {
             setErrorMessage("Unable to reach the server. Please try again.");
         }
+        
 
         timeoutRef.current = setTimeout(() => setErrorMessage(""), 3000);
 
@@ -60,7 +88,11 @@ function LoginForm(){
                             id="username"
                             type="text"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            className={missingFields.includes("username") ? "input-missing" : ""}
+                            onChange={(e) => {
+                                setUsername(e.target.value);
+                                setMissingFields(prev => prev.filter(field => field !== "username"));
+                            }}
                         />
                     </div>
                     <div className="form-field">
@@ -69,7 +101,11 @@ function LoginForm(){
                             id="password"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            className={missingFields.includes("password") ? "input-missing" : ""}
+                            onChange={(e) => {
+                                setPassword(e.target.value);
+                                setMissingFields(prev => prev.filter(field => field !== "password"));
+                            }}
                         />
                     </div>
                     <button type="submit" className="btn-primary">Log In</button>

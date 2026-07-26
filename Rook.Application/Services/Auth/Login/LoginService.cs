@@ -4,27 +4,33 @@ using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Infrastructure.Authentication;
 using Rook.Domain.Entities;
+using Rook.Domain.Exceptions;
+using FluentValidation;
 
 namespace Rook.Application.Services.Auth.Login;
 
 public class LoginService(
     ApplicationDbContext dbContext,
     IConfiguration configuration,
-    UserManager<ApplicationUser> userManager
+    UserManager<ApplicationUser> userManager,
+    IValidator<LoginCommand> validator
 )
 {
     public async Task<LoginResponse> Login(LoginCommand request)
     {
+
+        await validator.ValidateAndThrowAsync(request);
+
         var user = await userManager.FindByNameAsync(request.Username);
         if (user is null)
         {
-            throw new Exception("Invalid username or password");
+            throw new InvalidLoginException("Invalid username or password");
         }
 
         var isPasswordValid = await userManager.CheckPasswordAsync(user, request.Password);
         if (!isPasswordValid)
         {
-            throw new Exception("Invalid username or password");
+            throw new InvalidLoginException("Invalid username or password");
         }
 
         var accessToken = await JwtTokenGenerator.GenerateJwtToken(user, userManager, configuration);

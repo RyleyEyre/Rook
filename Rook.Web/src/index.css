@@ -10,6 +10,8 @@
     --color-accent-dark: #8d1010;
     --color-accent-light: #ef4444;
     --color-accent-shadow: #7d1111;
+    --color-error: #ef4444;
+    --color-error-rgb: 239, 68, 68;
 }
 
 [data-theme="emerald"] {
@@ -151,4 +153,14 @@ body {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(var(--color-accent-rgb), 0.25);
+}
+
+.form-field input.input-missing {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.2);
+}
+
+.form-field input.input-missing:focus {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.25);
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
+using Rook.Domain.Exceptions;
 
 namespace Rook.Api.Middleware;
 
@@ -20,7 +21,18 @@ public class GlobalExceptionHandler() : IExceptionHandler
 
         (problemDetails.Status, problemDetails.Title, problemDetails.Detail) = exception switch
         {
-
+            
+            ValidationException validationEx => (
+                (int)HttpStatusCode.BadRequest,
+                "Validation Error",
+                "One or more validation errors occurred."
+            ),
+            
+            InvalidLoginException invalidLoginEx=> (
+                (int)HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                invalidLoginEx.Message
+            ),
             
             _ => (
                 (int)HttpStatusCode.InternalServerError,

@@ -15,8 +15,8 @@ POST {{baseUrl}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "username": "Test1",
-  "password": "Password1!"
+  "username": "",
+  "password": ""
 }
 
 ### Access secure endpoint WITHOUT a token (expect 401)

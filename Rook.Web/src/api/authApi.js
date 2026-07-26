@@ -54,19 +54,19 @@ async function login(username, password) {
             return { success: false, status: response.status };
         }
 
-        const response2 = await response.json();
-        const decoded = jwtDecode(response2.data.accessToken);
+        const authResponse = await response.json();
+        const decoded = jwtDecode(authResponse.data.accessToken);
 
-        sessionStorage.setItem('accessToken', response2.data.accessToken);
-        sessionStorage.setItem('refreshToken', response2.data.refreshToken);
-        sessionStorage.setItem('userProfile', JSON.stringify(response2.data.userProfile));
+        sessionStorage.setItem('accessToken', authResponse.data.accessToken);
+        sessionStorage.setItem('refreshToken', authResponse.data.refreshToken);
+        sessionStorage.setItem('userProfile', JSON.stringify(authResponse.data.userProfile));
 
         return {
             success: true,
-            accessToken: response2.data.accessToken,
+            accessToken: authResponse.data.accessToken,
             username: decoded.username,
             role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-            userProfile: response2.data.userProfile,
+            userProfile: authResponse.data.userProfile,
         }
 
     } catch (error) {
