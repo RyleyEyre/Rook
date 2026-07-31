@@ -35,5 +35,5 @@ POST {{baseUrl}}/api/Auth/refresh
 Content-Type: application/json
 
 {
-  "refreshToken": "BrcTHviUeYq/iw2OoD1yR/J4XEKAvDQau8P/4FIqqZ0OT/0vXz8MXdH6tmdPJFFm72poW3KkHvwhBTAtehCjLQ=="
+  "refreshToken": "mhwUIAeK/5XU4nFm4VuDa0dJxgyzFqqjK0D5D32aO9hOJEAuLyejjMtLz31eHRy09En5Gzauko9ISSom3j0ekg=="
 }

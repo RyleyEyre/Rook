@@ -33,14 +33,9 @@ public class LoginService(
             throw new InvalidLoginException("Invalid username or password");
         }
 
-        var accessToken = await JwtTokenGenerator.GenerateJwtToken(user, userManager, configuration);
+        var accessToken = await TokenGenerator.GenerateJwtToken(user, userManager, configuration);
 
-        var refreshToken = new RefreshToken
-        {
-            Token =JwtTokenGenerator.GenerateRefreshTokenString(),
-            UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddHours(1)
-        };
+        var refreshToken = TokenGenerator.GenerateRefreshToken(user);
 
         var userProfile = new UserProfile();
         userProfile.Theme = user.Theme;

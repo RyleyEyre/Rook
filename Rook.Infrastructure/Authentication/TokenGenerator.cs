@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 
 namespace Rook.Infrastructure.Authentication;
 
-public static class JwtTokenGenerator
+public static class TokenGenerator
 {
     public static async Task<string> GenerateJwtToken(
         ApplicationUser user,
@@ -38,14 +38,26 @@ public static class JwtTokenGenerator
             issuer: configuration["Jwt:Issuer"],
             audience: configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(10),
+            expires: DateTime.UtcNow.AddSeconds(10),
             signingCredentials: credentials
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
 
     }
-    public static string GenerateRefreshTokenString()
+
+    public static RefreshToken GenerateRefreshToken(
+        ApplicationUser user)
+    {
+        return new RefreshToken
+        {
+            Token = GenerateRefreshTokenString(),
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddSeconds(30)
+        };
+    }
+
+    private static string GenerateRefreshTokenString()
     {
         var randomBytes = new byte[64];
 

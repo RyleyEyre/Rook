@@ -11,6 +11,7 @@ using Rook.Application.Services.Auth.Login;
 using Rook.Application.Services.Auth.Register;
 using FluentValidation;
 using Rook.Application.Services.Auth.Logout;
+using Rook.Application.Services.Auth.Refresh;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<RegisterService>();
 builder.Services.AddScoped<LogoutService>();
+builder.Services.AddScoped<RefreshService>();
 builder.Services.AddValidatorsFromAssembly(typeof(LoginValidator).Assembly);
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;

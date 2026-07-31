@@ -8,6 +8,8 @@ public class LogoutService(
     ApplicationDbContext dbContext
 )
 {
+    // Nothing needs to be returned for a logout and it doesnt matter if it fails internally
+    // as react will throw away the tokens effectively logging the user out regardless.
     public async Task Logout(LogoutCommand request)
     {
         var storedToken = await dbContext.RefreshTokens

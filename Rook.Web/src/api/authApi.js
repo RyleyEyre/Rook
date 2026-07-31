@@ -23,18 +23,18 @@ async function refreshTokens() {
             return null;
         }
 
-        const data = await response.json();
-        const decoded = jwtDecode(data.accessToken);
+        const authResponse = await response.json();
+        const decoded = jwtDecode(authResponse.data.accessToken);
 
-        sessionStorage.setItem('accessToken', data.accessToken);
-        sessionStorage.setItem('refreshToken', data.refreshToken);
-        sessionStorage.setItem('userProfile', JSON.stringify(data.userProfile));
+        sessionStorage.setItem('accessToken', authResponse.data.accessToken);
+        sessionStorage.setItem('refreshToken', authResponse.data.refreshToken);
+        sessionStorage.setItem('userProfile', JSON.stringify(authResponse.data.userProfile));
 
         return {
-            accessToken: data.accessToken,
+            accessToken: authResponse.data.accessToken,
             username: decoded.username,
             role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-            userProfile: data.userProfile,
+            userProfile: authResponse.data.userProfile,
         };
     } catch (error) {
         console.log('Network error', error);
