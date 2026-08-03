@@ -37,3 +37,16 @@ Content-Type: application/json
 {
   "refreshToken": "mhwUIAeK/5XU4nFm4VuDa0dJxgyzFqqjK0D5D32aO9hOJEAuLyejjMtLz31eHRy09En5Gzauko9ISSom3j0ekg=="
 }
+
+### Get shared message
+GET {{baseUrl}}/api/SharedMessage/11111111-1111-1111-1111-111111111111
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmM3NWJlYy1jNWIxLTQ4NWYtODVlMS1iZDBjZmU4YzNiYTEiLCJlbWFpbCI6InRlc3Q0QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJUZXN0NCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJleHAiOjE3ODU3Nzk1ODMsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.gwNLaS5vjNioICx3cppGwB2P9YGvGYzE3xzMkZE9InM
+
+### Update shared message
+PUT {{baseUrl}}/api/SharedMessage/11111111-1111-1111-1111-111111111111
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmM3NWJlYy1jNWIxLTQ4NWYtODVlMS1iZDBjZmU4YzNiYTEiLCJlbWFpbCI6InRlc3Q0QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJUZXN0NCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJleHAiOjE3ODU3Nzk1ODMsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.gwNLaS5vjNioICx3cppGwB2P9YGvGYzE3xzMkZE9InM
+Content-Type: application/json
+
+{
+  "content": "Updated message from Postman-style test"
+}

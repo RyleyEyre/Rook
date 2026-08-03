@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using Rook.Domain.Exceptions.Auth;
 using Rook.Domain.Exceptions.Common;
+using Rook.Domain.Exceptions.SharedMessage;
 
 namespace Rook.Api.Middleware;
 
@@ -55,6 +56,12 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 (int)HttpStatusCode.Unauthorized,
                 "Unauthorized",
                 invalidLoginEx.Message
+            ),
+
+            InvalidSharedMessageException invalidSharedMessageEx => (
+                (int)HttpStatusCode.NotFound,
+                "Message not found",
+                invalidSharedMessageEx.Message
             ),
 
             _ => (

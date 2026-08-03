@@ -38,7 +38,7 @@ public static class TokenGenerator
             issuer: configuration["Jwt:Issuer"],
             audience: configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddSeconds(10),
+            expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: credentials
         );
 
@@ -53,7 +53,7 @@ public static class TokenGenerator
         {
             Token = GenerateRefreshTokenString(),
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddSeconds(30)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
         };
     }
 
