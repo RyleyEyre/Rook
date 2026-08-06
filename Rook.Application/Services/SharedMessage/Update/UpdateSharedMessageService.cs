@@ -3,9 +3,12 @@ using Rook.Application.Services.SharedMessage.Update;
 using Rook.Domain.Entities;
 using Rook.Domain.Exceptions.SharedMessage;
 using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 public class UpdateSharedMessageService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
     public async Task<UpdateSharedMessageResponse> Update(UpdateSharedMessageCommand request, string userId)
@@ -31,6 +34,8 @@ public class UpdateSharedMessageService(
         dbContext.SharedMessageEdits.Add(sharedMessageEdit);
         await dbContext.SaveChangesAsync();
 
+        await hubContext.Clients.Group($"SharedMessage:{request.Id}")
+            .SendAsync("MessageUpdated", sharedMessage.Content, sharedMessage.UpdatedAt);
 
         return new UpdateSharedMessageResponse(sharedMessage.Id, sharedMessage.Content, sharedMessage.UpdatedAt);
     }

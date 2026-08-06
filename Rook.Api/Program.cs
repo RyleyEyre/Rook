@@ -14,6 +14,7 @@ using Rook.Application.Services.Auth.Logout;
 using Rook.Application.Services.Auth.Refresh;
 using Rook.Application.Services.SharedMessage.Get;
 using Rook.Application.Services.SharedMessage.Update;
+using Rook.Infrastructure.Hubs;
 
 
 
@@ -38,6 +39,8 @@ builder.Services.AddScoped<LogoutService>();
 builder.Services.AddScoped<RefreshService>();
 builder.Services.AddScoped<GetSharedMessageService>();
 builder.Services.AddScoped<UpdateSharedMessageService>();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddValidatorsFromAssembly(typeof(LoginValidator).Assembly);
 
@@ -75,6 +78,22 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero
     };
+    
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -85,7 +104,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -93,9 +113,10 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseCors("AllowReactApp");
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<LiveHub>("/hubs/live");
+app.MapControllers();
 
 
 

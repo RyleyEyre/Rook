@@ -1,26 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useApiFetch } from '../api/useApi.jsx';
-import { Link } from 'react-router-dom';
+import { useLiveConnection } from '../api/useLiveConnection.js';
+
+const SHARED_MESSAGE_ID = '11111111-1111-1111-1111-111111111111';
 
 function Hello() {
-    const { accessToken, username, role, isAuthLoading } = useAuth();
+    const { username, role, isAuthLoading } = useAuth();
     const apiFetch = useApiFetch();
-    const [message, setMessage] = useState(null);
+    const inputRef = useRef(null);
+
+    const [secureMessage, setSecureMessage] = useState(null);
+    const [sharedContent, setSharedContent] = useState('');
+    const [draftContent, setDraftContent] = useState('');
+    const [hasNewerVersion, setHasNewerVersion] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
 
     useEffect(() => {
-        if (isAuthLoading){
+        if (isAuthLoading) {
             return;
         }
 
         async function loadSecureData() {
             const response = await apiFetch('http://localhost:5248/api/Test/secure');
             const text = await response.text();
-            setMessage(text);
+            setSecureMessage(text);
+        }
+
+        async function loadSharedMessage() {
+            const response = await apiFetch(`http://localhost:5248/api/SharedMessage/${SHARED_MESSAGE_ID}`);
+            const body = await response.json();
+            setSharedContent(body.data.content);
+            setDraftContent(body.data.content);
         }
 
         loadSecureData();
+        loadSharedMessage();
     }, [isAuthLoading]);
+
+    // Live updates from other users editing the same shared message — the
+    // group name here must exactly match what UpdateSharedMessageService
+    // broadcasts to on the backend.
+    const connectionRef = useLiveConnection(`SharedMessage:${SHARED_MESSAGE_ID}`, {
+        MessageUpdated: (content) => {
+            if (document.activeElement === inputRef.current) {
+                setSharedContent(content);
+                setHasNewerVersion(true);
+            } else {
+                setSharedContent(content);
+                setDraftContent(content);
+            }
+        },
+        UserEditing: (editingUsername) => {
+            setEditingUser(editingUsername);
+        },
+        UserStoppedEditing: () => {
+            setEditingUser(null);
+        },
+    });
+
+    const handleSharedMessageSubmit = async (e) => {
+        e.preventDefault();
+
+        await apiFetch(`http://localhost:5248/api/SharedMessage/${SHARED_MESSAGE_ID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: draftContent }),
+        });
+    };
 
     if (isAuthLoading) {
         return <div>Loading...</div>;
@@ -32,7 +79,40 @@ function Hello() {
     return (
         <div>
             <div>Hello, {username}!</div>
-            <div>{message}</div>
+            <div>{secureMessage}</div>
+
+            <hr />
+
+            <h3>Shared message (live)</h3>
+            <div>Current: {sharedContent}</div>
+
+            {editingUser && editingUser !== username && (
+                <div>{editingUser} is currently editing this...</div>
+            )}
+
+            {hasNewerVersion && (
+                <div>
+                    A newer version is available.
+                    <button onClick={() => {
+                        setDraftContent(sharedContent);
+                        setHasNewerVersion(false);
+                    }}>
+                        Load new version
+                    </button>
+                </div>
+            )}
+
+            <form onSubmit={handleSharedMessageSubmit}>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value)}
+                    onFocus={() => connectionRef.current?.invoke('NotifyEditing', `SharedMessage:${SHARED_MESSAGE_ID}`, username)}
+                    onBlur={() => connectionRef.current?.invoke('NotifyStoppedEditing', `SharedMessage:${SHARED_MESSAGE_ID}`)}
+                />
+                <button type="submit">Update</button>
+            </form>
         </div>
     );
 }
