@@ -21,8 +21,8 @@ public class LiveHub : Hub
         await Clients.OthersInGroup(groupName).SendAsync("UserEditing", username);
     }
 
-    public async Task NotifyStoppedEditing(string groupName)
+    public async Task NotifyStoppedEditing(string groupName, string username)
     {
-        await Clients.OthersInGroup(groupName).SendAsync("UserStoppedEditing");
+        await Clients.OthersInGroup(groupName).SendAsync("UserStoppedEditing", username);
     }
 }

@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "./config";
 
 // RefreshTokens does not touch any react state, this function is 'dumb' by design and the caller decides what to do
 // if the tokens are expired. Local storage is owned here so it is responsible for updating them.
@@ -10,7 +11,7 @@ async function refreshTokens() {
     }
 
     try {
-        const response = await fetch('http://localhost:5248/api/Auth/refresh', {
+        const response = await fetch(`${API_URL}/api/Auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken: storedRefreshToken }),
@@ -44,7 +45,7 @@ async function refreshTokens() {
 
 async function login(username, password) {
     try{
-        const response = await fetch('http://localhost:5248/api/Auth/login', {
+        const response = await fetch(`${API_URL}/api/Auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
@@ -85,7 +86,7 @@ async function logout() {
     }
 
     try{
-        const response = await fetch('http://localhost:5248/api/Auth/logout', {
+        const response = await fetch(`${API_URL}/api/Auth/logout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken: storedRefreshToken }),

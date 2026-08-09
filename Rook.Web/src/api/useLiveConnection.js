@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import { HUB_URL } from './config';
 
 function useLiveConnection(groupName, eventHandlers) {
     const connectionRef = useRef(null);
 
     useEffect(() => {
         const connection = new HubConnectionBuilder()
-            .withUrl('http://localhost:5248/hubs/live', {
+            .withUrl(HUB_URL, {
                 accessTokenFactory: () => sessionStorage.getItem('accessToken'),
             })
             .withAutomaticReconnect()

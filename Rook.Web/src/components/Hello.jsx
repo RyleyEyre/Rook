@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useApiFetch } from '../api/useApi.jsx';
 import { useLiveConnection } from '../api/useLiveConnection.js';
+import { API_URL } from '../api/config.js';
 
 const SHARED_MESSAGE_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -14,7 +15,7 @@ function Hello() {
     const [sharedContent, setSharedContent] = useState('');
     const [draftContent, setDraftContent] = useState('');
     const [hasNewerVersion, setHasNewerVersion] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
+    const [editingUsers, setEditingUsers] = useState(new Set());
 
     useEffect(() => {
         if (isAuthLoading) {
@@ -22,13 +23,13 @@ function Hello() {
         }
 
         async function loadSecureData() {
-            const response = await apiFetch('http://localhost:5248/api/Test/secure');
+            const response = await apiFetch(`${API_URL}/api/Test/secure`);
             const text = await response.text();
             setSecureMessage(text);
         }
 
         async function loadSharedMessage() {
-            const response = await apiFetch(`http://localhost:5248/api/SharedMessage/${SHARED_MESSAGE_ID}`);
+            const response = await apiFetch(`${API_URL}/api/SharedMessage/${SHARED_MESSAGE_ID}`);
             const body = await response.json();
             setSharedContent(body.data.content);
             setDraftContent(body.data.content);
@@ -52,17 +53,21 @@ function Hello() {
             }
         },
         UserEditing: (editingUsername) => {
-            setEditingUser(editingUsername);
+            setEditingUsers((prev) => new Set(prev).add(editingUsername));
         },
-        UserStoppedEditing: () => {
-            setEditingUser(null);
+        UserStoppedEditing: (editingUsername) => {
+            setEditingUsers((prev) => {
+                const next = new Set(prev);
+                next.delete(editingUsername);
+                return next;
+            });
         },
     });
 
     const handleSharedMessageSubmit = async (e) => {
         e.preventDefault();
 
-        await apiFetch(`http://localhost:5248/api/SharedMessage/${SHARED_MESSAGE_ID}`, {
+        await apiFetch(`${API_URL}/api/SharedMessage/${SHARED_MESSAGE_ID}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: draftContent }),
@@ -86,8 +91,10 @@ function Hello() {
             <h3>Shared message (live)</h3>
             <div>Current: {sharedContent}</div>
 
-            {editingUser && editingUser !== username && (
-                <div>{editingUser} is currently editing this...</div>
+            {editingUsers.size > 0 && (
+                <div>
+                    {[...editingUsers].join(', ')} editing...
+                </div>
             )}
 
             {hasNewerVersion && (
@@ -109,7 +116,7 @@ function Hello() {
                     value={draftContent}
                     onChange={(e) => setDraftContent(e.target.value)}
                     onFocus={() => connectionRef.current?.invoke('NotifyEditing', `SharedMessage:${SHARED_MESSAGE_ID}`, username)}
-                    onBlur={() => connectionRef.current?.invoke('NotifyStoppedEditing', `SharedMessage:${SHARED_MESSAGE_ID}`)}
+                    onBlur={() => connectionRef.current?.invoke('NotifyStoppedEditing', `SharedMessage:${SHARED_MESSAGE_ID}`, username)}
                 />
                 <button type="submit">Update</button>
             </form>
