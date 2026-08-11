@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import RookIcon from '../icons/RookIcon';
+import { useAuth } from '../context/AuthContext';
+import RookIcon from '../shared/components/RookIcon';
 import './NavBar.css';
-import { logout } from '../../api/authApi';
+import { logout } from '../features/auth/authApi';
 import { useNavigate } from 'react-router-dom';
-import { saveUserProfile } from '../../api/userApi';
+import { saveUserProfile } from '../features/user/userApi';
 
 const navItems = [
     { label: 'Temp A', subLinks: ['Temp AA', 'Temp AB', 'Temp AC'] },

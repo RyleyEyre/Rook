@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth } from "../../context/AuthContext.jsx";
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom'
 import './LoginForm.css'
-import  RookIcon from '../icons/RookIcon.jsx'
-import { login } from '../../api/authApi';
+import RookIcon from "../../shared/components/RookIcon.jsx";
+import { login } from "./authApi.js";
 
 function LoginForm(){
     const [username, setUsername] = useState('');

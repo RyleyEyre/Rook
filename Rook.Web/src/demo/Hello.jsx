@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLiveConnection } from '../features/sharedMessage/useLiveConnection.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useApiFetch } from '../api/useApi.jsx';
-import { useLiveConnection } from '../api/useLiveConnection.js';
-import { API_URL } from '../api/config.js';
+import { API_URL } from '../shared/api/config.js';
+import { useApiFetch } from '../shared/api/useApi.js';
 
 const SHARED_MESSAGE_ID = '11111111-1111-1111-1111-111111111111';
 

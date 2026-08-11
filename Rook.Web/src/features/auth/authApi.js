@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import { API_URL } from "./config";
+import { API_URL } from "../../shared/api/config";
 
 // RefreshTokens does not touch any react state, this function is 'dumb' by design and the caller decides what to do
 // if the tokens are expired. Local storage is owned here so it is responsible for updating them.

@@ -1,11 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import LoginForm from './components/authentication/LoginForm'
-import Hello from './components/Hello'
-import LoadingScreen from './components/loading/LoadingScreen'
+import LoginForm from './features/auth/LoginForm'
+import LoadingScreen from './shared/components/LoadingScreen'
+import Hello from './demo/Hello'
 import { useAuth } from './context/AuthContext'
-import AuthLoading from './components/loading/LoadingScreen'
 import { useEffect, useState } from 'react'
-import AuthenticatedLayout from './components/layout/AuthenticatedLayout'
+import AuthenticatedLayout from './layout/AuthenticatedLayout'
 
 function App() {
     const { role, isAuthLoading } = useAuth();

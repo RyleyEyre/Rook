@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import { HUB_URL } from './config';
+import { HUB_URL } from '../../shared/api/config';
 
 function useLiveConnection(groupName, eventHandlers) {
     const connectionRef = useRef(null);

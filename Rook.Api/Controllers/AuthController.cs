@@ -49,7 +49,7 @@ public class AuthController(
     public async Task<IActionResult> Logout(LogoutCommand command)
     {
         await logoutService.Logout(command);
-        return NoContent(); // 204
+        return NoContent();
     }
 
     [HttpPost("refresh")]

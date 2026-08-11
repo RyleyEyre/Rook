@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import NavBar from '../navigation/NavBar';
+import NavBar from './NavBar';
 
 function AuthenticatedLayout() {
     return (

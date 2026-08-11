@@ -1,5 +1,5 @@
 import './LoadingScreen.css';
-import RookIcon from '../icons/RookIcon';
+import RookIcon from './RookIcon';
 
 function LoadingScreen({ message = 'Loading...' }, type = 'Auth') {
     if (type === 'Auth'){

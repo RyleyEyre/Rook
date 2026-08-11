@@ -1,6 +1,6 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { refreshTokens } from "./authApi";
+import { refreshTokens } from "../../features/auth/authApi";
 
 function useApiFetch() {
     const { accessToken, setAccessToken, setUsername, setRole, setUserProfile } = useAuth();
