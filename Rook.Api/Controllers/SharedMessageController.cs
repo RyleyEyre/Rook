@@ -16,7 +16,7 @@ public class SharedMessageController(
 
     [Authorize]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateSharedMessage(Guid id, [FromBody] UpdateSharedMessageContentRequest request)
+    public async Task<IActionResult> UpdateSharedMessage(int id, [FromBody] UpdateSharedMessageContentRequest request)
     {
         var userId = User.FindFirst("sub")?.Value;
         var command = new UpdateSharedMessageCommand(id, request.Content);
@@ -33,7 +33,7 @@ public class SharedMessageController(
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetSharedMessage(Guid id)
+    public async Task<IActionResult> GetSharedMessage(int id)
     {
         var command = new GetSharedMessageCommand(id);
         var result = await getSharedMessageService.Get(command);

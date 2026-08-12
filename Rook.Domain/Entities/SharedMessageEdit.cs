@@ -5,8 +5,8 @@ namespace Rook.Domain.Entities;
 // pattern once there are multiple features needing history tracking.
 public class SharedMessageEdit
 {
-    public Guid Id { get; set; }
-    public Guid SharedMessageId { get; set; }
+    public int Id { get; set; }
+    public int SharedMessageId { get; set; }
     public string EditedByUserId { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public DateTime EditedAt { get; set; }

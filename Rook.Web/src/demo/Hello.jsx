@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { API_URL } from '../shared/api/config.js';
 import { useApiFetch } from '../shared/api/useApi.js';
 
-const SHARED_MESSAGE_ID = '11111111-1111-1111-1111-111111111111';
+const SHARED_MESSAGE_ID = '1';
 
 function Hello() {
     const { username, role, isAuthLoading } = useAuth();

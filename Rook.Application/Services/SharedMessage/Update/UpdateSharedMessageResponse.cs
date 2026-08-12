@@ -1,3 +1,3 @@
 namespace Rook.Application.Services.SharedMessage.Update;
 
-public record UpdateSharedMessageResponse(Guid Id, string Content, DateTime UpdatedAt);
+public record UpdateSharedMessageResponse(int Id, string Content, DateTime UpdatedAt);
