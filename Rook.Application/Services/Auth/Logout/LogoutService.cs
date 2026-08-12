@@ -1,5 +1,4 @@
 using Rook.Infrastructure.Data;
-using Rook.Domain.Exceptions.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace Rook.Application.Services.Auth.Logout;

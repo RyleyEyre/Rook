@@ -5,4 +5,5 @@
   <Project Path="Rook.Application/Rook.Application.csproj" />
   <Project Path="Rook.Domain/Rook.Domain.csproj" />
   <Project Path="Rook.Infrastructure/Rook.Infrastructure.csproj" />
+  <Project Path="Rook.Tests/Rook.Tests.csproj" />
 </Solution>
