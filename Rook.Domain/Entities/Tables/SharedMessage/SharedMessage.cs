@@ -1,4 +1,4 @@
-namespace Rook.Domain.Entities;
+namespace Rook.Domain.Entities.Tables.SharedMessage;
 public class SharedMessage
 {
     public int Id { get; set; }

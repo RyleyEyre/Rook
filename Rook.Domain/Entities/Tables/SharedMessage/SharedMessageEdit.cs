@@ -1,4 +1,4 @@
-namespace Rook.Domain.Entities;
+namespace Rook.Domain.Entities.Tables.SharedMessage;
 
 // Demo-scoped audit table for this one feature. A real generic audit log
 // (entity type + entity id + user + timestamp) would be the better long-term

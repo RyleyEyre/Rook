@@ -24,7 +24,7 @@ public class GetSharedMessageServiceTests
         // Arrange
         var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
 
-        var existingMessage = new Rook.Domain.Entities.SharedMessage
+        var existingMessage = new Rook.Domain.Entities.Tables.SharedMessage.SharedMessage
         {
             Content = "Hello world",
             UpdatedAt = DateTime.UtcNow,

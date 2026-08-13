@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Rook.Application.Services.SharedMessage.Update;
-using Rook.Domain.Entities;
+using Rook.Domain.Entities.Tables.SharedMessage;
 using Rook.Domain.Exceptions.SharedMessage;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Hubs;

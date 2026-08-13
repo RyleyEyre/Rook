@@ -52,7 +52,7 @@ public class UpdateSharedMessageServiceTests
         var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
         var hubContextMock = CreateHubContextMock();
 
-        var existingMessage = new Rook.Domain.Entities.SharedMessage
+        var existingMessage = new Rook.Domain.Entities.Tables.SharedMessage.SharedMessage
         {
             Content = "Old content",
             UpdatedAt = DateTime.UtcNow.AddDays(-1),
