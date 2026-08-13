@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using FluentValidation;
 
 namespace Rook.Application.Services.Auth.Register;
@@ -30,6 +31,8 @@ public class RegisterValidator : AbstractValidator<RegisterCommand>
             .MinimumLength(3)
             .WithMessage("Minimum length of 3 is required")
             .MaximumLength(128)
-            .WithMessage("Maximum length of 128 is exceeded");   
+            .WithMessage("Maximum length of 128 is exceeded");
+        RuleFor(x => x.Role)
+            .Must(r => r == "User" || r == "Admin");   
     }
 }

@@ -52,6 +52,14 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 out errors
             ),
 
+            InvalidEmployeeDataException invalidEmployeeEx => Handle(
+                (int)HttpStatusCode.BadRequest,
+                "Registration Failed",
+                "One or more employee fields are invalid.",
+                invalidEmployeeEx.Errors,
+                out errors
+            ),
+
             InvalidLoginException invalidLoginEx => (
                 (int)HttpStatusCode.Unauthorized,
                 "Unauthorized",

@@ -1,23 +1,20 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
-using Rook.Infrastructure.Authentication;
-using Rook.Domain.Entities;
 using Rook.Domain.Exceptions.Auth;
 using Rook.Domain.Exceptions.Common;
 using FluentValidation;
+using Rook.Domain.Entities.Tables.Employee;
+using Microsoft.EntityFrameworkCore;
 
 namespace Rook.Application.Services.Auth.Register;
 
 public class RegisterService(
     UserManager<ApplicationUser> userManager,
-    IValidator<RegisterCommand> validator
+    IValidator<RegisterCommand> validator,
+    ApplicationDbContext dbContext
 )
 {
-    // Maps IdentityError.Code values to the request field they relate to,
-    // so the frontend can highlight the right input. Codes not listed here
-    // (e.g. PasswordRequiresDigit) fall back to a generic "password" grouping.
     private static readonly Dictionary<string, string> IdentityErrorPropertyMap = new()
     {
         ["DuplicateUserName"] = "username",
@@ -55,6 +52,28 @@ public class RegisterService(
             throw new UserAlreadyExistsException(conflictErrors);
         }
 
+        // Verify referenced lookup data actually exists before creating anything,
+        // so a bad DepartmentId/ShiftPatternId fails cleanly instead of as a
+        // raw foreign key constraint violation at save time.
+        var employeeDataErrors = new List<FieldError>();
+
+        var departmentExists = await dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId);
+        if (!departmentExists)
+        {
+            employeeDataErrors.Add(new FieldError("departmentId", "The specified department does not exist."));
+        }
+
+        var shiftPatternExists = await dbContext.ShiftPatterns.AnyAsync(sp => sp.Id == request.ShiftPatternId);
+        if (!shiftPatternExists)
+        {
+            employeeDataErrors.Add(new FieldError("shiftPatternId", "The specified shift pattern does not exist."));
+        }
+
+        if (employeeDataErrors.Count > 0)
+        {
+            throw new InvalidEmployeeDataException(employeeDataErrors);
+        }
+
         var user = new ApplicationUser
         {
             UserName = request.Username,
@@ -73,7 +92,25 @@ public class RegisterService(
             throw new RegistrationFailedException(errors);
         }
 
-        await userManager.AddToRoleAsync(user, "User");
+        await userManager.AddToRoleAsync(user, request.Role);
+
+        var employee = new Employee
+        {
+            UserId = user.Id,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            MiddleName = request.MiddleName,
+            DepartmentId = request.DepartmentId,
+            ShiftPatternId = request.ShiftPatternId,
+            ManagerId = request.ManagerId,
+            FusionId = request.FusionId,
+            WCSId = request.WCSId,
+            VoiceConsoleId = request.VoiceConsoleId,
+            StartDate = request.StartDate,
+        };
+
+        dbContext.Employees.Add(employee);
+        await dbContext.SaveChangesAsync();
 
         return new RegisterResponse(user.Id, user.UserName!, user.Email!);
     }

@@ -1,13 +1,25 @@
 @baseUrl = http://localhost:5248
 
-### Register a new user
+### Register a new employee
 POST {{baseUrl}}/api/Auth/register
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY2MzQxNjgsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.sWfYESqbNpIfvSZpOnB9wrV8SWDuP4QmvdliwaTySVs
 Content-Type: application/json
 
 {
-  "username": "Test4",
-  "email": "test4@example.com",
-  "password": "Password111111!"
+  "username": "jsmith",
+  "password": "StrongPassword1!",
+  "email": "jsmith@example.com",
+  "firstName": "John",
+  "lastName": "Smith",
+  "middleName": null,
+  "role": "Users",
+  "departmentId": 1,
+  "shiftPatternId": 1,
+  "startDate": "2026-08-13T00:00:00Z",
+  "managerId": null,
+  "fusionId": null,
+  "wcsId": null,
+  "voiceConsoleId": null
 }
 
 ### Login
@@ -15,8 +27,8 @@ POST {{baseUrl}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "username": "Test4",
-  "password": "Password111111!"
+  "username": "Admin",
+  "password": "Admin123!"
 }
 
 ### Access secure endpoint WITHOUT a token (expect 401)

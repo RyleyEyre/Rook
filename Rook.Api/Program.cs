@@ -12,8 +12,7 @@ using Rook.Application.Services.Auth.Register;
 using FluentValidation;
 using Rook.Application.Services.Auth.Logout;
 using Rook.Application.Services.Auth.Refresh;
-using Rook.Application.Services.SharedMessage.Get;
-using Rook.Application.Services.SharedMessage.Update;
+using Rook.Domain.Entities.Tables.Employee;
 using Rook.Infrastructure.Hubs;
 
 
@@ -133,6 +132,55 @@ using (var scope = app.Services.CreateScope())
         if  (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    // Seed a default "Unassigned" department/shift pattern if none exist yet,
+    // so the seeded admin's Employee record has something valid to reference.
+    var unassignedDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.Name == "Unassigned");
+    if (unassignedDepartment is null)
+    {
+        unassignedDepartment = new Department { Name = "Unassigned" };
+        dbContext.Departments.Add(unassignedDepartment);
+        await dbContext.SaveChangesAsync();
+    }
+
+    var unassignedShiftPattern = await dbContext.ShiftPatterns.FirstOrDefaultAsync(sp => sp.Name == "Unassigned");
+    if (unassignedShiftPattern is null)
+    {
+        unassignedShiftPattern = new ShiftPattern { Name = "Unassigned" };
+        dbContext.ShiftPatterns.Add(unassignedShiftPattern);
+        await dbContext.SaveChangesAsync();
+    }
+
+    // Only seed the default admin if no Admin-role user exists yet — this
+    // keeps the block idempotent (safe to run on every startup), and means
+    // once a real admin exists, this never fires again.
+    var existingAdmins = await userManager.GetUsersInRoleAsync("Admin");
+    if (existingAdmins.Count == 0)
+    {
+        var seedUsername = configuration["SeedAdmin:Username"]!;
+        var seedEmail = configuration["SeedAdmin:Email"]!;
+        var seedPassword = configuration["SeedAdmin:Password"]!;
+
+        var adminUser = new ApplicationUser
+        {
+            UserName = seedUsername,
+            Email = seedEmail
+        };
+
+        var result = await userManager.CreateAsync(adminUser, seedPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }
 }

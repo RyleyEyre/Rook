@@ -3,6 +3,7 @@ using Rook.Application.Services.Auth.Login;
 using Rook.Application.Services.Auth.Register;
 using Rook.Application.Services.Auth.Logout;
 using Rook.Application.Services.Auth.Refresh;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Rook.Api.Controllers;
 
@@ -16,6 +17,7 @@ public class AuthController(
     ) : ControllerBase
 {
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
