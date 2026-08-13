@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Rook.Application.Services.SharedMessage.Get;
 using Rook.Domain.Exceptions.SharedMessage;
-using Rook.Infrastructure.Data;
+using Rook.Tests.Helpers;
 
 namespace Rook.Tests.Services.SharedMessage.Get;
 
@@ -10,24 +9,20 @@ public class GetSharedMessageServiceTests
     [Fact]
     public async Task Get_WhenMessageDoesNotExist_ThrowsInvalidSharedMessageException()
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
-
+        // Arrange
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
         var command = new GetSharedMessageCommand(999);
         var service = new GetSharedMessageService(dbContext);
 
+        // Act & Assert
         await Assert.ThrowsAsync<InvalidSharedMessageException>(() => service.Get(command));
     }
 
     [Fact]
     public async Task Get_WhenMessageExists_ReturnsGetSharedMessageResponse()
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
+        // Arrange
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
 
         var existingMessage = new Rook.Domain.Entities.SharedMessage
         {
@@ -40,8 +35,10 @@ public class GetSharedMessageServiceTests
         var command = new GetSharedMessageCommand(existingMessage.Id);
         var service = new GetSharedMessageService(dbContext);
 
+        // Act
         var result = await service.Get(command);
 
+        // Assert
         Assert.Equal(existingMessage.Id, result.Id);
         Assert.Equal("Hello world", result.Content);
     }

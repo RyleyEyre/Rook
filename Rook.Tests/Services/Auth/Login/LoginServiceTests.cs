@@ -1,13 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
-using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Identity;
 using Rook.Application.Services.Auth.Login;
 using Rook.Domain.Exceptions.Auth;
 using Rook.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Rook.Infrastructure.Data;
+using Rook.Tests.Helpers;
 
 namespace Rook.Tests.Services.Auth.Login;
 
@@ -17,13 +13,8 @@ public class LoginServiceTests
     public async Task Login_WhenUserDoesNotExist_ThrowsInvalidLoginException()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<LoginCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<LoginCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         userManagerMock
             .Setup(u => u.FindByNameAsync("nonexistent"))
@@ -35,19 +26,13 @@ public class LoginServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidLoginException>(() => loginService.Login(command));
     }
-    
+
     [Fact]
     public async Task Login_WhenUserExistsWithWrongPassword_ThrowsInvalidLoginException()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<LoginCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        // Create the fake UserManager
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<LoginCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         // This is the fake "user" that exists in our fake database, for this test only
         var existingUser = new ApplicationUser { UserName = "TestUser" };
@@ -73,25 +58,10 @@ public class LoginServiceTests
     public async Task Login_WhenUserExistsWithCorrectPassword_ReturnsLoginResponse()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        var dbContext = new ApplicationDbContext(options);
-
-        var validatorMock = new Mock<IValidator<LoginCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        // Create the fake UserManager.
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
-
-        var configurationMock = new Mock<IConfiguration>();
-            configurationMock.Setup(c => c["Jwt:Key"]).Returns("this-is-a-test-key-at-least-32-characters-long");
-            configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
-            configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<LoginCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
+        var configurationMock = JwtConfigurationTestHelpers.CreateJwtConfigurationMock();
 
         // This is the fake "user" that exists in our fake database, for this test only
         var existingUser = new ApplicationUser { UserName = "TestUser", Email = "Test@example.com" };
@@ -126,6 +96,4 @@ public class LoginServiceTests
         Assert.Equal(existingUser.Id, storedToken.UserId);
         Assert.True(storedToken.ExpiresAt > DateTime.UtcNow);
     }
-
-
 }

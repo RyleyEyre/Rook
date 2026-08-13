@@ -21,7 +21,7 @@ public class RefreshTokenTests
         Assert.True(result);
     }
 
-        [Fact]
+    [Fact]
     public void IsActive_WhenRevokedAndNotExpired_ReturnsFalse()
     {
         // Arrange
@@ -38,7 +38,7 @@ public class RefreshTokenTests
         Assert.False(result);
     }
 
-        [Fact]
+    [Fact]
     public void IsActive_WhenNotRevokedAndExpired_ReturnsFalse()
     {
         // Arrange
@@ -54,6 +54,7 @@ public class RefreshTokenTests
         // Assert
         Assert.False(result);
     }
+
     [Fact]
     public void IsActive_WhenRevokedAndExpired_ReturnsFalse()
     {

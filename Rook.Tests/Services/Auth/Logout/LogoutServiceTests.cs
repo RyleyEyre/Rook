@@ -1,23 +1,18 @@
+using Microsoft.EntityFrameworkCore;
 using Rook.Application.Services.Auth.Logout;
 using Rook.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Rook.Infrastructure.Data;
+using Rook.Tests.Helpers;
 
 namespace Rook.Tests.Services.Auth.Logout;
 
 public class LogoutServiceTests
 {
     [Fact]
-    public async Task Logout_WhenRefreshTokenExsists()
+    public async Task Logout_WhenRefreshTokenExists_RevokesToken()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
 
-        var dbContext = new ApplicationDbContext(options);
-
-        // Generate a fake refresh token and add it to the database
         var existingToken = new RefreshToken
         {
             Token = "some-refresh-token-value",
@@ -25,7 +20,6 @@ public class LogoutServiceTests
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IsRevoked = false,
         };
-
         dbContext.RefreshTokens.Add(existingToken);
         await dbContext.SaveChangesAsync();
 
@@ -34,7 +28,6 @@ public class LogoutServiceTests
 
         // Act
         await logoutService.Logout(command);
-        
         var storedToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == existingToken.Token);
 
         // Assert
@@ -46,11 +39,7 @@ public class LogoutServiceTests
     public async Task Logout_WhenRefreshTokenDoesNotExist_DoesNotThrow()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
-
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
         var command = new LogoutCommand("nonexistent-token");
         var logoutService = new LogoutService(dbContext);
 

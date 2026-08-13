@@ -1,26 +1,20 @@
-using Moq;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
+using Moq;
 using Rook.Application.Services.Auth.Register;
 using Rook.Domain.Exceptions.Auth;
 using Rook.Infrastructure.Identity;
+using Rook.Tests.Helpers;
 
 namespace Rook.Tests.Services.Auth.Register;
 
 public class RegisterServiceTests
 {
-[Fact]
-public async Task Register_WhenUsernameAlreadyExists_ThrowsWithUsernameFieldError()
+    [Fact]
+    public async Task Register_WhenUsernameAlreadyExists_ThrowsWithUsernameFieldError()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<RegisterCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<RegisterCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var existingUser = new ApplicationUser { UserName = "TestUser", Email = "TestUser@example.com" };
 
@@ -45,17 +39,12 @@ public async Task Register_WhenUsernameAlreadyExists_ThrowsWithUsernameFieldErro
         Assert.Equal("username", exception.Errors.First().Property);
     }
 
-[Fact]
-public async Task Register_WhenEmailAlreadyExists_ThrowsWithEmailFieldError()
+    [Fact]
+    public async Task Register_WhenEmailAlreadyExists_ThrowsWithEmailFieldError()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<RegisterCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<RegisterCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var existingUser = new ApplicationUser { UserName = "TestUser", Email = "TestUser@example.com" };
 
@@ -80,17 +69,12 @@ public async Task Register_WhenEmailAlreadyExists_ThrowsWithEmailFieldError()
         Assert.Equal("email", exception.Errors.First().Property);
     }
 
-[Fact]
-public async Task Register_WhenPasswordTooShort_ThrowsWithPasswordFieldError()
+    [Fact]
+    public async Task Register_WhenPasswordTooShort_ThrowsWithPasswordFieldError()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<RegisterCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<RegisterCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var identityErrors = new[] { new IdentityError { Code = "PasswordTooShort", Description = "Password is too short." } };
 
@@ -120,17 +104,12 @@ public async Task Register_WhenPasswordTooShort_ThrowsWithPasswordFieldError()
         Assert.Equal("password", exception.Errors.First().Property);
     }
 
-[Fact]
-public async Task Register_WithUnmappedIdentityErrorCode_FallsBackToNullFieldError()
+    [Fact]
+    public async Task Register_WithUnmappedIdentityErrorCode_FallsBackToNullFieldError()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<RegisterCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<RegisterCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var identityErrors = new[] { new IdentityError { Code = "SomeUnknownErrorCode", Description = "Something went wrong." } };
 
@@ -160,17 +139,12 @@ public async Task Register_WithUnmappedIdentityErrorCode_FallsBackToNullFieldErr
         Assert.Null(exception.Errors.First().Property);
     }
 
-[Fact]
-public async Task Register_WhenUsernameAndEmailAreFree_ReturnsRegisterResponse()
+    [Fact]
+    public async Task Register_WhenUsernameAndEmailAreFree_ReturnsRegisterResponse()
     {
         // Arrange
-        var validatorMock = new Mock<IValidator<RegisterCommand>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<RegisterCommand>(), default))
-            .ReturnsAsync(new ValidationResult());
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         // username is free
         userManagerMock
@@ -186,6 +160,7 @@ public async Task Register_WhenUsernameAndEmailAreFree_ReturnsRegisterResponse()
         userManagerMock
             .Setup(u => u.CreateAsync(It.IsAny<ApplicationUser>(), "StrongPassword"))
             .ReturnsAsync(IdentityResult.Success);
+
         // role was added
         userManagerMock
             .Setup(u => u.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"))

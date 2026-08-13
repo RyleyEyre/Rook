@@ -1,11 +1,9 @@
-using Moq;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Rook.Application.Services.Auth.Refresh;
 using Rook.Domain.Exceptions.Auth;
-using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
+using Rook.Tests.Helpers;
+using Moq;
 
 namespace Rook.Tests.Services.Auth.Refresh;
 
@@ -15,14 +13,9 @@ public class RefreshServiceTests
     public async Task Refresh_WhenTokenDoesNotExist_ThrowsExpiredRefreshTokenException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
-
-        var configurationMock = new Mock<IConfiguration>();
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
+        var configurationMock = JwtConfigurationTestHelpers.CreateJwtConfigurationMock();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var command = new RefreshCommand("nonexistent-token");
         var refreshService = new RefreshService(dbContext, configurationMock.Object, userManagerMock.Object);
@@ -35,10 +28,9 @@ public class RefreshServiceTests
     public async Task Refresh_WhenTokenIsRevoked_ThrowsExpiredRefreshTokenException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
+        var configurationMock = JwtConfigurationTestHelpers.CreateJwtConfigurationMock();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         // Seed a token that's already been revoked
         var revokedToken = new RefreshToken
@@ -51,10 +43,6 @@ public class RefreshServiceTests
         dbContext.RefreshTokens.Add(revokedToken);
         await dbContext.SaveChangesAsync();
 
-        var configurationMock = new Mock<IConfiguration>();
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
-
         var command = new RefreshCommand("revoked-token");
         var refreshService = new RefreshService(dbContext, configurationMock.Object, userManagerMock.Object);
 
@@ -66,10 +54,9 @@ public class RefreshServiceTests
     public async Task Refresh_WhenUserNoLongerExists_ThrowsExpiredRefreshTokenException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
+        var configurationMock = JwtConfigurationTestHelpers.CreateJwtConfigurationMock();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         // Token is valid, but its owning user has vanished (e.g. deleted)
         var orphanedToken = new RefreshToken
@@ -81,10 +68,6 @@ public class RefreshServiceTests
         };
         dbContext.RefreshTokens.Add(orphanedToken);
         await dbContext.SaveChangesAsync();
-
-        var configurationMock = new Mock<IConfiguration>();
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
 
         userManagerMock
             .Setup(u => u.FindByIdAsync("deleted-user-id"))
@@ -101,10 +84,9 @@ public class RefreshServiceTests
     public async Task Refresh_WhenTokenAndUserAreValid_RotatesTokenAndReturnsRefreshResponse()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        var dbContext = new ApplicationDbContext(options);
+        var dbContext = DbContextTestHelpers.CreateInMemoryDbContext();
+        var configurationMock = JwtConfigurationTestHelpers.CreateJwtConfigurationMock();
+        var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var existingToken = new RefreshToken
         {
@@ -123,14 +105,6 @@ public class RefreshServiceTests
             Email = "TestUser@example.com",
             Theme = "emerald",
         };
-
-        var configurationMock = new Mock<IConfiguration>();
-        configurationMock.Setup(c => c["Jwt:Key"]).Returns("this-is-a-test-key-at-least-32-characters-long");
-        configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
-        configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
-
-        var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
 
         userManagerMock
             .Setup(u => u.FindByIdAsync("existing-user-id"))
