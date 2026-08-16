@@ -2,7 +2,7 @@
 
 ### Register a new employee
 POST {{baseUrl}}/api/Employee/create
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY3MzAxMjksImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.w_BrEiTDU3KnqR3rUYZ2PfBDbveQ29eXnlaAwpUQEEQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY5MTc2MzcsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.MUfZhksNHS8_ufymOO6hY32O3xhXrhrL2hLzg_sTg4Q
 Content-Type: application/json
 
 {
@@ -16,6 +16,28 @@ Content-Type: application/json
   "departmentId": 1,
   "shiftPatternId": 1,
   "startDate": "2026-08-13T00:00:00Z",
+  "managerId": null,
+  "fusionId": null,
+  "wcsId": null,
+  "voiceConsoleId": null
+}
+
+###
+POST {{baseUrl}}/api/Employee/update
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY5MTc2MzcsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.MUfZhksNHS8_ufymOO6hY32O3xhXrhrL2hLzg_sTg4Q
+Content-Type: application/json
+
+{
+  "userId":  "425603c2-0659-46f7-b868-283b2d700801",
+  "username": "jsmith",
+  "email": "jsmith@example.com",
+  "firstName": "Jenny",
+  "lastName": "Smith",
+  "middleName": null,
+  "role": "User",
+  "departmentId": 1,
+  "shiftPatternId": 1,
+  "startDate": "2026-09-13T00:00:00Z",
   "managerId": null,
   "fusionId": null,
   "wcsId": null,

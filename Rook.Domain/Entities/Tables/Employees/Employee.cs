@@ -21,4 +21,5 @@ public class Employee
     public string? VoiceConsoleId { get; set; }
 
     public DateTime StartDate { get; set; }
+    public DateTime? TerminationDate {get; set; }
 }

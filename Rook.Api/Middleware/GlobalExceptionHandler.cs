@@ -45,6 +45,12 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 out errors
             ),
 
+            EmployeeNotFoundException userNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                userNotFoundex.Message
+            ),
+
             InvalidEmployeeDataException invalidEmployeeEx => Handle(
                 (int)HttpStatusCode.BadRequest,
                 "Registration Failed",

@@ -6,6 +6,7 @@ using Rook.Infrastructure.Identity;
 using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.Common;
 using Rook.Domain.Entities.Tables.Employees;
+using Rook.Infrastructure.Authentication;
 
 namespace Rook.Application.Services.Employees.Create;
 
@@ -15,23 +16,6 @@ public class CreateEmployeeService(
     ApplicationDbContext dbContext
 )
 {
-    // Maps IdentityError.Code values to the request field they relate to,
-    // so the frontend can highlight the right input. Codes not listed here
-    // (e.g. PasswordRequiresDigit) fall back to a generic "password" grouping.
-    private static readonly Dictionary<string, string> IdentityErrorPropertyMap = new()
-    {
-        ["DuplicateUserName"] = "username",
-        ["InvalidUserName"] = "username",
-        ["DuplicateEmail"] = "email",
-        ["InvalidEmail"] = "email",
-        ["PasswordTooShort"] = "password",
-        ["PasswordRequiresNonAlphanumeric"] = "password",
-        ["PasswordRequiresDigit"] = "password",
-        ["PasswordRequiresLower"] = "password",
-        ["PasswordRequiresUpper"] = "password",
-        ["PasswordRequiresUniqueChars"] = "password",
-    };
-
     public async Task<CreateEmployeeResponse> Create(CreateEmployeeCommand request)
     {
         await validator.ValidateAndThrowAsync(request);
@@ -88,7 +72,7 @@ public class CreateEmployeeService(
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => new FieldError(
-                IdentityErrorPropertyMap.GetValueOrDefault(e.Code),
+                IdentityErrorMapper.MapCode(e.Code),
                 e.Description
             )).ToList();
 
