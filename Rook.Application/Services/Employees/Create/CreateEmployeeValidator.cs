@@ -1,11 +1,10 @@
-using System.Security.Cryptography.X509Certificates;
 using FluentValidation;
 
-namespace Rook.Application.Services.Auth.Register;
+namespace Rook.Application.Services.Employees.Create;
 
-public class RegisterValidator : AbstractValidator<RegisterCommand>
+public class CreateEmployeeValidator : AbstractValidator<CreateEmployeeCommand>
 {
-    public RegisterValidator()
+    public CreateEmployeeValidator()
     {
         RuleFor(x => x.Username)
             .NotEmpty()

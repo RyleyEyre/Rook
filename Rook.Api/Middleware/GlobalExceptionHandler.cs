@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using Rook.Domain.Exceptions.Auth;
 using Rook.Domain.Exceptions.Common;
+using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.SharedMessage;
 
 namespace Rook.Api.Middleware;
@@ -36,19 +37,11 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 out errors
             ),
 
-            UserAlreadyExistsException userExistsEx => Handle(
+            EmployeeAlreadyExsistsException userExistsEx => Handle(
                 (int)HttpStatusCode.Conflict,
                 "Conflict",
                 "One or more conflicts occurred during registration.",
                 userExistsEx.Errors,
-                out errors
-            ),
-
-            RegistrationFailedException registrationEx => Handle(
-                (int)HttpStatusCode.BadRequest,
-                "Registration Failed",
-                "One or more errors occurred during registration.",
-                registrationEx.Errors,
                 out errors
             ),
 

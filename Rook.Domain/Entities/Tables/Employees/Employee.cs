@@ -1,4 +1,4 @@
-namespace Rook.Domain.Entities.Tables.Employee;
+namespace Rook.Domain.Entities.Tables.Employees;
 
 public class Employee
 {

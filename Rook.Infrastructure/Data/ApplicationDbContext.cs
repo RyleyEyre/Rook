@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Rook.Infrastructure.Identity;
 using Rook.Domain.Entities.Tables.SharedMessage;
-using Rook.Domain.Entities.Tables.Employee;
+using Rook.Domain.Entities.Tables.Employees;
 
 namespace Rook.Infrastructure.Data;
 

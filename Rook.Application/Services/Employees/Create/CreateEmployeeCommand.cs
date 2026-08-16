@@ -1,4 +1,5 @@
-public record RegisterCommand(
+namespace Rook.Application.Services.Employees.Create;
+public record CreateEmployeeCommand(
     string Username,
     string Password,
     string Email,

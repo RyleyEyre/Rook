@@ -13,7 +13,7 @@ public class RegisterServiceTests
     public async Task Register_WhenUsernameAlreadyExists_ThrowsWithUsernameFieldError()
     {
         // Arrange
-        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<CreateEmployeeCommand>();
         var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var existingUser = new ApplicationUser { UserName = "TestUser", Email = "TestUser@example.com" };
@@ -32,7 +32,7 @@ public class RegisterServiceTests
         var registerService = new RegisterService(userManagerMock.Object, validatorMock.Object);
 
         // Act
-        var exception = await Assert.ThrowsAsync<UserAlreadyExistsException>(() => registerService.Register(command));
+        var exception = await Assert.ThrowsAsync<EmployeeAlreadyExsistsException>(() => registerService.Register(command));
 
         // Assert
         Assert.Single(exception.Errors);
@@ -43,7 +43,7 @@ public class RegisterServiceTests
     public async Task Register_WhenEmailAlreadyExists_ThrowsWithEmailFieldError()
     {
         // Arrange
-        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<CreateEmployeeCommand>();
         var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var existingUser = new ApplicationUser { UserName = "TestUser", Email = "TestUser@example.com" };
@@ -62,7 +62,7 @@ public class RegisterServiceTests
         var registerService = new RegisterService(userManagerMock.Object, validatorMock.Object);
 
         // Act
-        var exception = await Assert.ThrowsAsync<UserAlreadyExistsException>(() => registerService.Register(command));
+        var exception = await Assert.ThrowsAsync<EmployeeAlreadyExsistsException>(() => registerService.Register(command));
 
         // Assert
         Assert.Single(exception.Errors);
@@ -73,7 +73,7 @@ public class RegisterServiceTests
     public async Task Register_WhenPasswordTooShort_ThrowsWithPasswordFieldError()
     {
         // Arrange
-        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<CreateEmployeeCommand>();
         var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var identityErrors = new[] { new IdentityError { Code = "PasswordTooShort", Description = "Password is too short." } };
@@ -97,7 +97,7 @@ public class RegisterServiceTests
         var registerService = new RegisterService(userManagerMock.Object, validatorMock.Object);
 
         // Act
-        var exception = await Assert.ThrowsAsync<RegistrationFailedException>(() => registerService.Register(command));
+        var exception = await Assert.ThrowsAsync<CreateEmployeeFailedException>(() => registerService.Register(command));
 
         // Assert
         Assert.Single(exception.Errors);
@@ -108,7 +108,7 @@ public class RegisterServiceTests
     public async Task Register_WithUnmappedIdentityErrorCode_FallsBackToNullFieldError()
     {
         // Arrange
-        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<CreateEmployeeCommand>();
         var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         var identityErrors = new[] { new IdentityError { Code = "SomeUnknownErrorCode", Description = "Something went wrong." } };
@@ -132,7 +132,7 @@ public class RegisterServiceTests
         var registerService = new RegisterService(userManagerMock.Object, validatorMock.Object);
 
         // Act
-        var exception = await Assert.ThrowsAsync<RegistrationFailedException>(() => registerService.Register(command));
+        var exception = await Assert.ThrowsAsync<CreateEmployeeFailedException>(() => registerService.Register(command));
 
         // Assert
         Assert.Single(exception.Errors);
@@ -143,7 +143,7 @@ public class RegisterServiceTests
     public async Task Register_WhenUsernameAndEmailAreFree_ReturnsRegisterResponse()
     {
         // Arrange
-        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<RegisterCommand>();
+        var validatorMock = ValidatorTestHelpers.CreateValidValidatorMock<CreateEmployeeCommand>();
         var userManagerMock = UserManagerTestHelpers.CreateUserManagerMock();
 
         // username is free

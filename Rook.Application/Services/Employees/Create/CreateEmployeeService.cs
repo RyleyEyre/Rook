@@ -1,20 +1,23 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
-using Rook.Domain.Exceptions.Auth;
+using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.Common;
-using FluentValidation;
-using Rook.Domain.Entities.Tables.Employee;
-using Microsoft.EntityFrameworkCore;
+using Rook.Domain.Entities.Tables.Employees;
 
-namespace Rook.Application.Services.Auth.Register;
+namespace Rook.Application.Services.Employees.Create;
 
-public class RegisterService(
+public class CreateEmployeeService(
     UserManager<ApplicationUser> userManager,
-    IValidator<RegisterCommand> validator,
+    IValidator<CreateEmployeeCommand> validator,
     ApplicationDbContext dbContext
 )
 {
+    // Maps IdentityError.Code values to the request field they relate to,
+    // so the frontend can highlight the right input. Codes not listed here
+    // (e.g. PasswordRequiresDigit) fall back to a generic "password" grouping.
     private static readonly Dictionary<string, string> IdentityErrorPropertyMap = new()
     {
         ["DuplicateUserName"] = "username",
@@ -29,7 +32,7 @@ public class RegisterService(
         ["PasswordRequiresUniqueChars"] = "password",
     };
 
-    public async Task<RegisterResponse> Register(RegisterCommand request)
+    public async Task<CreateEmployeeResponse> Create(CreateEmployeeCommand request)
     {
         await validator.ValidateAndThrowAsync(request);
 
@@ -49,7 +52,7 @@ public class RegisterService(
 
         if (conflictErrors.Count > 0)
         {
-            throw new UserAlreadyExistsException(conflictErrors);
+            throw new EmployeeAlreadyExsistsException(conflictErrors);
         }
 
         // Verify referenced lookup data actually exists before creating anything,
@@ -87,9 +90,9 @@ public class RegisterService(
             var errors = result.Errors.Select(e => new FieldError(
                 IdentityErrorPropertyMap.GetValueOrDefault(e.Code),
                 e.Description
-            ));
+            )).ToList();
 
-            throw new RegistrationFailedException(errors);
+            throw new InvalidEmployeeDataException(errors);
         }
 
         await userManager.AddToRoleAsync(user, request.Role);
@@ -112,6 +115,6 @@ public class RegisterService(
         dbContext.Employees.Add(employee);
         await dbContext.SaveChangesAsync();
 
-        return new RegisterResponse(user.Id, user.UserName!, user.Email!);
+        return new CreateEmployeeResponse(user.Id, user.UserName!, user.Email!);
     }
 }

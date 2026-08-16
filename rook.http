@@ -1,18 +1,18 @@
 @baseUrl = http://localhost:5248
 
 ### Register a new employee
-POST {{baseUrl}}/api/Auth/register
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY2MzQxNjgsImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.sWfYESqbNpIfvSZpOnB9wrV8SWDuP4QmvdliwaTySVs
+POST {{baseUrl}}/api/Employee/create
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjlhZjg4Yy0wNTJjLTQ2OGYtYTQ4OC1hZWViZTNhZTM1MGMiLCJlbWFpbCI6ImFkbWluQHJvb2subG9jYWwiLCJ1c2VybmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODY3MzAxMjksImlzcyI6IlJvb2tBcGkiLCJhdWQiOiJSb29rQ2xpZW50In0.w_BrEiTDU3KnqR3rUYZ2PfBDbveQ29eXnlaAwpUQEEQ
 Content-Type: application/json
 
 {
-  "username": "jsmith",
+  "username": "lsmith",
   "password": "StrongPassword1!",
-  "email": "jsmith@example.com",
-  "firstName": "John",
+  "email": "lsmith@example.com",
+  "firstName": "Leon",
   "lastName": "Smith",
   "middleName": null,
-  "role": "Users",
+  "role": "User",
   "departmentId": 1,
   "shiftPatternId": 1,
   "startDate": "2026-08-13T00:00:00Z",

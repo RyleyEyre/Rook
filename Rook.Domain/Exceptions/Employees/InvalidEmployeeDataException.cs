@@ -1,14 +1,15 @@
-namespace Rook.Domain.Exceptions.Auth;
+namespace Rook.Domain.Exceptions.Employees;
 
 using Rook.Domain.Exceptions.Common;
 
-public sealed class RegistrationFailedException : Exception
+public sealed class InvalidEmployeeDataException : Exception
 {
     public IReadOnlyCollection<FieldError> Errors { get; }
 
-    public RegistrationFailedException(IEnumerable<FieldError> errors)
+    public InvalidEmployeeDataException(IEnumerable<FieldError> errors)
         : base("Registration failed.")
     {
         Errors = errors.ToList();
     }
 }
+

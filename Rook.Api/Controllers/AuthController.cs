@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Rook.Application.Services.Auth.Login;
-using Rook.Application.Services.Auth.Register;
 using Rook.Application.Services.Auth.Logout;
 using Rook.Application.Services.Auth.Refresh;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Rook.Api.Controllers;
 
@@ -12,26 +10,9 @@ namespace Rook.Api.Controllers;
 public class AuthController(
     LoginService loginService,
     LogoutService logoutService,
-    RegisterService registerService,
     RefreshService refreshService
     ) : ControllerBase
 {
-
-    [Authorize(Roles = "Admin")]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterCommand command)
-    {
-        var result = await registerService.Register(command);
-        return Ok(
-            new
-            {
-                success = true,
-                message = "Registration Successful",
-                data = result,
-            }
-        );
-    }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {

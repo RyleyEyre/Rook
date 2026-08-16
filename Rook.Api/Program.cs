@@ -8,11 +8,11 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Rook.Api.Middleware;
 using Rook.Application.Services.Auth.Login;
-using Rook.Application.Services.Auth.Register;
+using Rook.Application.Services.Employees.Create;
 using FluentValidation;
 using Rook.Application.Services.Auth.Logout;
 using Rook.Application.Services.Auth.Refresh;
-using Rook.Domain.Entities.Tables.Employee;
+using Rook.Domain.Entities.Tables.Employees;
 using Rook.Infrastructure.Hubs;
 
 
@@ -33,7 +33,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<LoginService>();
-builder.Services.AddScoped<RegisterService>();
+builder.Services.AddScoped<CreateEmployeeService>();
 builder.Services.AddScoped<LogoutService>();
 builder.Services.AddScoped<RefreshService>();
 builder.Services.AddScoped<GetSharedMessageService>();
