@@ -7,7 +7,7 @@ public sealed class InvalidEmployeeDataException : Exception
     public IReadOnlyCollection<FieldError> Errors { get; }
 
     public InvalidEmployeeDataException(IEnumerable<FieldError> errors)
-        : base("Registration failed.")
+        : base("Creation failed.")
     {
         Errors = errors.ToList();
     }

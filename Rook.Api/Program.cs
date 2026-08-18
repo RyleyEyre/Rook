@@ -15,6 +15,7 @@ using Rook.Application.Services.Auth.Refresh;
 using Rook.Domain.Entities.Tables.Employees;
 using Rook.Infrastructure.Hubs;
 using Rook.Application.Services.Employees.Update;
+using Rook.Application.Services.Employees.Delete;
 
 
 
@@ -36,6 +37,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<CreateEmployeeService>();
 builder.Services.AddScoped<UpdateEmployeeService>();
+builder.Services.AddScoped<DeleteEmployeeService>();
 builder.Services.AddScoped<LogoutService>();
 builder.Services.AddScoped<RefreshService>();
 builder.Services.AddScoped<GetSharedMessageService>();

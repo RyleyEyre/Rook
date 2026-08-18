@@ -407,3 +407,4 @@ FodyWeavers.xsd
 
 # Environment
 *.env
+*.http

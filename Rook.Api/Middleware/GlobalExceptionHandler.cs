@@ -40,7 +40,7 @@ public class GlobalExceptionHandler() : IExceptionHandler
             EmployeeAlreadyExsistsException userExistsEx => Handle(
                 (int)HttpStatusCode.Conflict,
                 "Conflict",
-                "One or more conflicts occurred during registration.",
+                "One or more conflicts occurred during creation.",
                 userExistsEx.Errors,
                 out errors
             ),
@@ -49,6 +49,12 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 (int)HttpStatusCode.NotFound,
                 "Not Found",
                 userNotFoundex.Message
+            ),
+
+            EmployeeTerminatedException userTerminatedex => (
+                (int)HttpStatusCode.Conflict,
+                "Conflict",
+                userTerminatedex.Message
             ),
 
             InvalidEmployeeDataException invalidEmployeeEx => Handle(

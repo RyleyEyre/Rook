@@ -5,6 +5,7 @@ using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.Common;
+using Rook.Domain.Entities.Tables.Employees;
 
 namespace Rook.Application.Services.Employees.Update;
 
@@ -30,16 +31,21 @@ public class UpdateEmployeeService(
             throw new EmployeeNotFoundException("No employee exists with this id.");
         }
 
+        if (employee.TerminationDate is not null)
+        {
+            throw new EmployeeTerminatedException("This employee is terminated");
+        }
+
         var conflictErrors = new List<FieldError>();
 
         var existingUserByUsername = await userManager.FindByNameAsync(request.Username);
-        if (existingUserByUsername is not null && existingUserByUsername.UserName != request.Username)
+        if (existingUserByUsername is not null && existingUserByUsername.Id != request.UserId)
         {
             conflictErrors.Add(new FieldError("username", "A user with this username already exists."));
         }
 
         var existingUserByEmail = await userManager.FindByEmailAsync(request.Email);
-        if (existingUserByEmail is not null && existingUserByEmail.Email != request.Email)
+        if (existingUserByEmail is not null && existingUserByEmail.Id != request.UserId)
         {
             conflictErrors.Add(new FieldError("email", "A user with this email already exists."));
         }

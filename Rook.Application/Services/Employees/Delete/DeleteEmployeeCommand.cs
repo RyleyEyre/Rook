@@ -1,0 +1,1 @@
+public record DeleteEmployeeCommand(DateTime TerminationDate, string UserId);
