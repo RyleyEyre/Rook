@@ -16,6 +16,8 @@ using Rook.Domain.Entities.Tables.Employees;
 using Rook.Infrastructure.Hubs;
 using Rook.Application.Services.Employees.Update;
 using Rook.Application.Services.Employees.Delete;
+using Rook.Application.Services.Employees.List;
+using Rook.Application.Services.Employees.GetById;
 
 
 
@@ -38,6 +40,8 @@ builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<CreateEmployeeService>();
 builder.Services.AddScoped<UpdateEmployeeService>();
 builder.Services.AddScoped<DeleteEmployeeService>();
+builder.Services.AddScoped<ListEmployeesService>();
+builder.Services.AddScoped<GetByIdEmployeeService>();
 builder.Services.AddScoped<LogoutService>();
 builder.Services.AddScoped<RefreshService>();
 builder.Services.AddScoped<GetSharedMessageService>();

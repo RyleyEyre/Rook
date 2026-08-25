@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Rook.Application.Services.Employees.Create;
 using Rook.Application.Services.Employees.Update;
 using Rook.Application.Services.Employees.Delete;
+using Rook.Application.Services.Employees.List;
+using Rook.Application.Services.Employees.GetById;
 
 using Microsoft.AspNetCore.Authorization;
 
@@ -12,7 +14,9 @@ namespace Rook.Api.Controllers;
 public class EmployeeController(
     CreateEmployeeService createEmployeeService,
     UpdateEmployeeService updateEmployeeService,
-    DeleteEmployeeService deleteEmployeeService
+    DeleteEmployeeService deleteEmployeeService,
+    ListEmployeesService listEmployeesService,
+    GetByIdEmployeeService getByIdEmployeeService
     ) : ControllerBase
 {
 
@@ -79,6 +83,37 @@ public class EmployeeController(
             {
                 success = true,
                 message = "Employee Delete Successful",
+            }
+        );
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<IActionResult> List()
+    {
+        var result = await listEmployeesService.List();
+        return Ok(
+            new
+            {
+                success = true,
+                message = "Employee List Retrieved",
+                data = result,
+            }
+        );
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string id)
+    {
+        var command = new GetByIdEmployeeCommand(id);
+        var result = await getByIdEmployeeService.Get(command);
+        return Ok(
+            new
+            {
+                success = true,
+                message = "Employee details retrieved",
+                data = result,
             }
         );
     }
