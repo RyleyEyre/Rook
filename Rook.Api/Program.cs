@@ -150,24 +150,6 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-    // Seed a default "Unassigned" department/shift pattern if none exist yet,
-    // so the seeded admin's Employee record has something valid to reference.
-    var unassignedDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.Name == "Unassigned");
-    if (unassignedDepartment is null)
-    {
-        unassignedDepartment = new Department { Name = "Unassigned" };
-        dbContext.Departments.Add(unassignedDepartment);
-        await dbContext.SaveChangesAsync();
-    }
-
-    var unassignedShiftPattern = await dbContext.ShiftPatterns.FirstOrDefaultAsync(sp => sp.Name == "Unassigned");
-    if (unassignedShiftPattern is null)
-    {
-        unassignedShiftPattern = new ShiftPattern { Name = "Unassigned" };
-        dbContext.ShiftPatterns.Add(unassignedShiftPattern);
-        await dbContext.SaveChangesAsync();
-    }
-
     // Only seed the default admin if no Admin-role user exists yet — this
     // keeps the block idempotent (safe to run on every startup), and means
     // once a real admin exists, this never fires again.

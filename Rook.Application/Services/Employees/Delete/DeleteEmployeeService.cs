@@ -35,8 +35,8 @@ public class DeleteEmployeeService(
         // account as terminated in the database, rather than leaving the
         // clean username permanently reserved by someone no longer employed.
 
-        var terminatedUsername = $"{user.UserName}_terminated_{request.TerminationDate}";
-        var terminatedEmail = $"{user.Email}_terminated_{request.TerminationDate}";
+        var terminatedUsername = $"{user.UserName}_terminated_{request.UserId}";
+        var terminatedEmail = $"{user.Email}_terminated_{request.UserId}";
 
         await userManager.SetUserNameAsync(user, terminatedUsername);
         await userManager.SetEmailAsync(user, terminatedEmail);

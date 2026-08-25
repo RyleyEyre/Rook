@@ -8,11 +8,11 @@ public class Employee
     public string LastName { get; set; } = string.Empty;
     public string? MiddleName { get; set; }
 
-    public int DepartmentId { get; set; }
-    public Department Department { get; set; } = null!;
+    public int? DepartmentId { get; set; }
+    public Department? Department { get; set; }
 
-    public int ShiftPatternId { get; set; }
-    public ShiftPattern ShiftPattern { get; set; } = null!;
+    public int? ShiftPatternId { get; set; }
+    public ShiftPattern? ShiftPattern { get; set; }
 
     public string? ManagerId { get; set; }
 
@@ -21,5 +21,11 @@ public class Employee
     public string? VoiceConsoleId { get; set; }
 
     public DateTime StartDate { get; set; }
-    public DateTime? TerminationDate {get; set; }
+    public DateTime? TerminationDate { get; set; }
+
+    // Computed rather than stored, so it can never drift out of sync with
+    // the actual data — always reflects whatever's currently filled in.
+    public bool IsProfileComplete =>
+        DepartmentId is not null &&
+        ShiftPatternId is not null;
 }

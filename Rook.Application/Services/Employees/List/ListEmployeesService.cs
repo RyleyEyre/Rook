@@ -16,10 +16,11 @@ public class ListEmployeesService(ApplicationDbContext dbContext)
             UserId: e.UserId,
             FirstName: e.FirstName,
             LastName: e.LastName,
-            DepartmentName: e.Department.Name,
-            ShiftPatternName: e.ShiftPattern.Name,
+            DepartmentName: e.Department?.Name,
+            ShiftPatternName: e.ShiftPattern?.Name,
             StartDate: e.StartDate,
-            TerminationDate: e.TerminationDate
+            TerminationDate: e.TerminationDate,
+            IsProfileComplete: e.IsProfileComplete
         )).ToList();
     }
 }

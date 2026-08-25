@@ -44,16 +44,22 @@ public class CreateEmployeeService(
         // raw foreign key constraint violation at save time.
         var employeeDataErrors = new List<FieldError>();
 
-        var departmentExists = await dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId);
-        if (!departmentExists)
+        if (request.DepartmentId is not null)
         {
-            employeeDataErrors.Add(new FieldError("departmentId", "The specified department does not exist."));
+            var departmentExists = await dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId);
+            if (!departmentExists)
+            {
+                employeeDataErrors.Add(new FieldError("departmentId", "The specified department does not exist."));
+            }
         }
 
-        var shiftPatternExists = await dbContext.ShiftPatterns.AnyAsync(sp => sp.Id == request.ShiftPatternId);
-        if (!shiftPatternExists)
+        if (request.ShiftPatternId is not null)
         {
-            employeeDataErrors.Add(new FieldError("shiftPatternId", "The specified shift pattern does not exist."));
+            var shiftPatternExists = await dbContext.ShiftPatterns.AnyAsync(sp => sp.Id == request.ShiftPatternId);
+            if (!shiftPatternExists)
+            {
+                employeeDataErrors.Add(new FieldError("shiftPatternId", "The specified shift pattern does not exist."));
+            }
         }
 
         if (employeeDataErrors.Count > 0)
