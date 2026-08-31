@@ -6,6 +6,7 @@ using Rook.Domain.Exceptions.Auth;
 using Rook.Domain.Exceptions.Common;
 using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.SharedMessage;
+using Rook.Domain.Exceptions.Departments;
 
 namespace Rook.Api.Middleware;
 
@@ -37,7 +38,7 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 out errors
             ),
 
-            EmployeeAlreadyExsistsException userExistsEx => Handle(
+            EmployeeAlreadyExistsException userExistsEx => Handle(
                 (int)HttpStatusCode.Conflict,
                 "Conflict",
                 "One or more conflicts occurred during creation.",
@@ -63,6 +64,24 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 "One or more employee fields are invalid.",
                 invalidEmployeeEx.Errors,
                 out errors
+            ),
+
+            DepartmentAlreadyExsistsException deptAlreadyExistsex => (
+                (int)HttpStatusCode.Conflict,
+                "Department Already Exists",
+                deptAlreadyExistsex.Message
+            ),
+
+            DepartmentInUseException deptInUseex => (
+                (int)HttpStatusCode.Conflict,
+                "Department In Use",
+                deptInUseex.Message
+            ),
+
+            DepartmentNotFoundException deptNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                deptNotFoundex.Message
             ),
 
             InvalidLoginException invalidLoginEx => (

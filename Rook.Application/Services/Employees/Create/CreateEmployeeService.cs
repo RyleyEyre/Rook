@@ -36,7 +36,7 @@ public class CreateEmployeeService(
 
         if (conflictErrors.Count > 0)
         {
-            throw new EmployeeAlreadyExsistsException(conflictErrors);
+            throw new EmployeeAlreadyExistsException(conflictErrors);
         }
 
         // Verify referenced lookup data actually exists before creating anything,

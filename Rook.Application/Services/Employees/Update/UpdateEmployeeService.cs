@@ -52,7 +52,7 @@ public class UpdateEmployeeService(
 
         if (conflictErrors.Count > 0)
         {
-            throw new EmployeeAlreadyExsistsException(conflictErrors);
+            throw new EmployeeAlreadyExistsException(conflictErrors);
         }
 
         var employeeDataErrors = new List<FieldError>();
