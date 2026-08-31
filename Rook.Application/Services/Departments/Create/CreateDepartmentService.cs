@@ -11,7 +11,7 @@ public class CreateDepartmentService(
 {
     public async Task<CreateDepartmentResponse> Create(CreateDepartmentCommand request)
     {
-        var existingDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.Name == request.Name);
+        var existingDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.NormalizedName == request.Name.ToUpperInvariant());
 
         if (existingDepartment is not null)
         {
@@ -20,7 +20,8 @@ public class CreateDepartmentService(
 
         var department = new Department
         {
-            Name = request.Name
+            Name = request.Name,
+            NormalizedName = request.Name.ToUpperInvariant()
         };
 
         dbContext.Departments.Add(department);

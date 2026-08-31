@@ -20,6 +20,8 @@ using Rook.Application.Services.Employees.List;
 using Rook.Application.Services.Employees.GetById;
 using Rook.Application.Services.Departments.Delete;
 using Rook.Application.Services.Departments.Create;
+using Rook.Application.Services.Departments.Update;
+using Rook.Application.Services.Departments.List;
 
 
 
@@ -51,6 +53,9 @@ builder.Services.AddScoped<UpdateSharedMessageService>();
 
 builder.Services.AddScoped<CreateDepartmentService>();
 builder.Services.AddScoped<DeleteDepartmentService>();
+builder.Services.AddScoped<UpdateDepartmentService>();
+builder.Services.AddScoped<ListDepartmentsService>();
+
 
 builder.Services.AddSignalR();
 

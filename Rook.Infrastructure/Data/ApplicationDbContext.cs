@@ -45,5 +45,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(sp => sp.Employees)
             .HasForeignKey(e => e.ShiftPatternId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Department>()
+            .HasIndex(d => d.NormalizedName)
+            .IsUnique();
+
+        modelBuilder.Entity<ShiftPattern>()
+            .HasIndex(sp => sp.NormalizedName)
+            .IsUnique();
     }
 }
