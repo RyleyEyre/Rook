@@ -26,11 +26,6 @@ public class UpdateDepartmentService(
             throw new DepartmentAlreadyExsistsException("A department with this name already exists.");
         }
 
-        if (department.Name == request.Name)
-        {
-            throw new DepartmentAlreadyExsistsException("A department with this name already exists.");
-        }
-
         department.Name = request.Name;
         department.NormalizedName = request.Name.ToUpperInvariant();
 

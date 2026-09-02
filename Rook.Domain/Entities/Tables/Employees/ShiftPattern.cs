@@ -7,4 +7,5 @@ public class ShiftPattern
     public string NormalizedName { get; set; } = string.Empty;
 
     public ICollection<Employee> Employees { get; set; } = new List<Employee>();
+    public ICollection<ShiftPatternDay> Days { get; set; } = new List<ShiftPatternDay>();
 }

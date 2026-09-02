@@ -22,6 +22,10 @@ using Rook.Application.Services.Departments.Delete;
 using Rook.Application.Services.Departments.Create;
 using Rook.Application.Services.Departments.Update;
 using Rook.Application.Services.Departments.List;
+using Rook.Application.Services.ShiftPatterns.Create;
+using Rook.Application.Services.ShiftPatterns.Delete;
+using Rook.Application.Services.ShiftPatterns.Update;
+using Rook.Application.Services.ShiftPatterns.List;
 
 
 
@@ -55,6 +59,13 @@ builder.Services.AddScoped<CreateDepartmentService>();
 builder.Services.AddScoped<DeleteDepartmentService>();
 builder.Services.AddScoped<UpdateDepartmentService>();
 builder.Services.AddScoped<ListDepartmentsService>();
+
+builder.Services.AddScoped<CreateShiftPatternService>();
+builder.Services.AddScoped<DeleteShiftPatternService>();
+builder.Services.AddScoped<UpdateShiftPatternService>();
+builder.Services.AddScoped<ListShiftPatternsService>();
+
+
 
 
 builder.Services.AddSignalR();

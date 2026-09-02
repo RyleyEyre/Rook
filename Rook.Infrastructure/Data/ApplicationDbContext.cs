@@ -20,6 +20,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<ShiftPattern> ShiftPatterns => Set<ShiftPattern>();
+    public DbSet<ShiftPatternDay> ShiftPatternDays => Set<ShiftPatternDay>();
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,5 +55,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<ShiftPattern>()
             .HasIndex(sp => sp.NormalizedName)
             .IsUnique();
+
+        modelBuilder.Entity<ShiftPatternDay>()
+            .HasOne(spd => spd.ShiftPattern)
+            .WithMany(sp => sp.Days)
+            .HasForeignKey(spd => spd.ShiftPatternId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

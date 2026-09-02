@@ -7,6 +7,8 @@ using Rook.Domain.Exceptions.Common;
 using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.SharedMessage;
 using Rook.Domain.Exceptions.Departments;
+using Rook.Domain.Entities.Tables.Employees;
+using Rook.Domain.Exceptions.ShiftPatterns;
 
 namespace Rook.Api.Middleware;
 
@@ -79,6 +81,30 @@ public class GlobalExceptionHandler() : IExceptionHandler
             ),
 
             DepartmentNotFoundException deptNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                deptNotFoundex.Message
+            ),
+
+            ShiftPatternNotFoundException deptNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                deptNotFoundex.Message
+            ),
+
+            ShiftPatternAlreadyExistsException deptNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                deptNotFoundex.Message
+            ),
+
+            ShiftPatternInUseException deptNotFoundex => (
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                deptNotFoundex.Message
+            ),
+
+            DuplicateShiftPatternDayException deptNotFoundex => (
                 (int)HttpStatusCode.NotFound,
                 "Not Found",
                 deptNotFoundex.Message
