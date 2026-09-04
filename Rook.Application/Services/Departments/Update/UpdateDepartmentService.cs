@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Exceptions.Departments;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.Departments.Update;
@@ -15,7 +15,9 @@ public class UpdateDepartmentService(
 
         if (department is null)
         {
-            throw new DepartmentNotFoundException("No department with this id exists.");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         var conflictingDepartment = await dbContext.Departments
@@ -23,7 +25,9 @@ public class UpdateDepartmentService(
 
         if (conflictingDepartment is not null)
         {
-            throw new DepartmentAlreadyExsistsException("A department with this name already exists.");
+            var field = nameof(request.Name);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE,"name"));
+            throw new ConflictException("A conflict occurred.", [error]);
         }
 
         department.Name = request.Name;

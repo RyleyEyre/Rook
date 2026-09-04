@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Entities.Tables.Employees;
-using Rook.Domain.Exceptions.Departments;
+using Rook.Domain.Entities.Tables.Departments;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.Departments.Create;
@@ -15,9 +15,11 @@ public class CreateDepartmentService(
 
         if (existingDepartment is not null)
         {
-            throw new DepartmentAlreadyExsistsException("A department with this name already exists.");
+            var field = nameof(request.Name);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "name"));
+            throw new ConflictException("A conflict occurred.",[error]);
         }
-
+ 
         var department = new Department
         {
             Name = request.Name,

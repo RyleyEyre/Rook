@@ -3,9 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
-using Rook.Domain.Exceptions.Employees;
 using Rook.Domain.Exceptions.Common;
-using Rook.Domain.Entities.Tables.Employees;
 
 namespace Rook.Application.Services.Employees.Update;
 
@@ -22,18 +20,24 @@ public class UpdateEmployeeService(
         var user = await userManager.FindByIdAsync(request.UserId);
         if (user is null)
         {
-            throw new EmployeeNotFoundException("No employee exists with this id.");
+            var field = nameof(request.UserId);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "user id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         var employee = await dbContext.Employees.FirstOrDefaultAsync(e => e.UserId == request.UserId);
         if (employee is null)
         {
-            throw new EmployeeNotFoundException("No employee exists with this id.");
+            var field = nameof(request.UserId);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "user id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         if (employee.TerminationDate is not null)
         {
-            throw new EmployeeTerminatedException("This employee is terminated");
+            var field = nameof(employee.TerminationDate);
+            var error = new FieldError(field, ErrorCode.INVALID_STATE.ToString(), ErrorMessages.For(ErrorCode.INVALID_STATE, "termination date"));
+            throw new ConflictException("The employee is already terminated.", [error]);
         }
 
         var conflictErrors = new List<FieldError>();
@@ -41,18 +45,20 @@ public class UpdateEmployeeService(
         var existingUserByUsername = await userManager.FindByNameAsync(request.Username);
         if (existingUserByUsername is not null && existingUserByUsername.Id != request.UserId)
         {
-            conflictErrors.Add(new FieldError("username", "A user with this username already exists."));
+            var field = nameof(request.Username);
+            conflictErrors.Add(new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "username")));
         }
 
         var existingUserByEmail = await userManager.FindByEmailAsync(request.Email);
         if (existingUserByEmail is not null && existingUserByEmail.Id != request.UserId)
         {
-            conflictErrors.Add(new FieldError("email", "A user with this email already exists."));
+            var field = nameof(request.Email);
+            conflictErrors.Add(new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "email")));
         }
 
         if (conflictErrors.Count > 0)
         {
-            throw new EmployeeAlreadyExistsException(conflictErrors);
+            throw new ConflictException("One or more conflicts occurred.", conflictErrors);
         }
 
         var employeeDataErrors = new List<FieldError>();
@@ -62,7 +68,8 @@ public class UpdateEmployeeService(
             var departmentExists = await dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId);
             if (!departmentExists)
             {
-                employeeDataErrors.Add(new FieldError("departmentId", "The specified department does not exist."));
+                var field = nameof(request.DepartmentId);
+                employeeDataErrors.Add(new FieldError(field, ErrorCode.INVALID_REFERENCE.ToString(), ErrorMessages.For(ErrorCode.INVALID_REFERENCE, "department")));
             }
         }
 
@@ -71,13 +78,14 @@ public class UpdateEmployeeService(
             var shiftPatternExists = await dbContext.ShiftPatterns.AnyAsync(sp => sp.Id == request.ShiftPatternId);
             if (!shiftPatternExists)
             {
-                employeeDataErrors.Add(new FieldError("shiftPatternId", "The specified shift pattern does not exist."));
+                var field = nameof(request.ShiftPatternId);
+                employeeDataErrors.Add(new FieldError(field, ErrorCode.INVALID_REFERENCE.ToString(), ErrorMessages.For(ErrorCode.INVALID_REFERENCE, "shift pattern")));
             }
         }
 
         if (employeeDataErrors.Count > 0)
         {
-            throw new InvalidEmployeeDataException(employeeDataErrors);
+            throw new BadRequestException("One or more fields are invalid.", employeeDataErrors);
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);

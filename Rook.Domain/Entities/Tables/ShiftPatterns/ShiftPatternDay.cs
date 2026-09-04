@@ -1,4 +1,4 @@
-namespace Rook.Domain.Entities.Tables.Employees;
+namespace Rook.Domain.Entities.Tables.ShiftPatterns;
 
 // A shift's DayOfWeek reflects the day it STARTS, not necessarily every day
 // it spans. Overnight shifts (EndTime < StartTime) run into the next

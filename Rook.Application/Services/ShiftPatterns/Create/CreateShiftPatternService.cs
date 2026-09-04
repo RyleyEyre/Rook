@@ -1,8 +1,7 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
+using Rook.Application.Services.ShiftPatterns.Common;
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Entities.Tables.Employees;
-using Rook.Domain.Exceptions.ShiftPatterns;
+using Rook.Domain.Entities.Tables.ShiftPatterns;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.ShiftPatterns.Create;
@@ -20,7 +19,9 @@ public class CreateShiftPatternService(
 
         if (duplicateDays)
         {
-            throw new DuplicateShiftPatternDayException("Duplicate days are not allowed in a shift pattern.");
+            var field = nameof(request.Days);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "day"));
+            throw new ConflictException("A conflict occurred.", [error]);
         }
 
         var shiftPatternExists = await dbContext.ShiftPatterns
@@ -28,7 +29,9 @@ public class CreateShiftPatternService(
 
         if (shiftPatternExists is not null)
         {
-            throw new ShiftPatternAlreadyExistsException("A shift pattern with this name already exists");
+            var field = nameof(request.Name);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "name"));
+            throw new ConflictException("A conflict occurred.", [error]);
         }
 
         var shiftPattern = new ShiftPattern

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Rook.Application.Services.SharedMessage.Update;
 using Rook.Domain.Entities.Tables.SharedMessage;
-using Rook.Domain.Exceptions.SharedMessage;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Rook.Domain.Exceptions.Common;
 
 public class UpdateSharedMessageService(
     ApplicationDbContext dbContext,
@@ -17,7 +17,9 @@ public class UpdateSharedMessageService(
 
         if (sharedMessage is null)
         {
-            throw new InvalidSharedMessageException("Invalid Message ID");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         sharedMessage.Content = request.Content;

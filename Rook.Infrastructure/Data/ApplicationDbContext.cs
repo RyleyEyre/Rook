@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Rook.Infrastructure.Identity;
 using Rook.Domain.Entities.Tables.SharedMessage;
 using Rook.Domain.Entities.Tables.Employees;
+using Rook.Domain.Entities.Tables.Departments;
+using Rook.Domain.Entities.Tables.ShiftPatterns;
 
 namespace Rook.Infrastructure.Data;
 

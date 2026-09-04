@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Exceptions.Departments;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.Departments.Delete;
@@ -14,14 +14,18 @@ public class DeleteDepartmentService(
 
         if (department is null)
         {
-            throw new DepartmentNotFoundException("No department exists with this id.");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
-        
+
         var employeeCount = await dbContext.Employees.CountAsync(e => e.DepartmentId == request.Id);
 
         if (employeeCount > 0)
         {
-            throw new DepartmentInUseException($"This department is in use by {employeeCount} employee(s).");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_IN_USE.ToString(), $"This department is in use by {employeeCount} employee(s).");
+            throw new ConflictException("This department cannot be deleted.", [error]);
         }
 
         dbContext.Departments.Remove(department);

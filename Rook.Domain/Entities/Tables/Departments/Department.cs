@@ -1,4 +1,5 @@
-namespace Rook.Domain.Entities.Tables.Employees;
+using Rook.Domain.Entities.Tables.Employees;
+namespace Rook.Domain.Entities.Tables.Departments;
 
 public class Department
 {

@@ -2,17 +2,14 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
-using Rook.Domain.Exceptions.Auth;
 using Rook.Domain.Exceptions.Common;
-using Rook.Domain.Exceptions.Employees;
-using Rook.Domain.Exceptions.SharedMessage;
-using Rook.Domain.Exceptions.Departments;
-using Rook.Domain.Entities.Tables.Employees;
-using Rook.Domain.Exceptions.ShiftPatterns;
 
 namespace Rook.Api.Middleware;
 
-public class GlobalExceptionHandler() : IExceptionHandler
+public class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    IHostEnvironment environment
+) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -20,6 +17,9 @@ public class GlobalExceptionHandler() : IExceptionHandler
         CancellationToken cancellationToken
     )
     {
+        logger.LogError(exception, "Unhandled exception processing {Method} {Path}",
+            httpContext.Request.Method, httpContext.Request.Path);
+
         var problemDetails = new ProblemDetails
         {
             Instance = $"{httpContext.Request.Method} {httpContext.Request.Path}",
@@ -35,97 +35,74 @@ public class GlobalExceptionHandler() : IExceptionHandler
                 "One or more validation errors occurred.",
                 validationEx.Errors.Select(e => new FieldError(
                     LowercaseFirstLetter(e.PropertyName),
+                    ErrorCode.VALIDATION_FAILED.ToString(),
                     e.ErrorMessage
                 )),
                 out errors
             ),
 
-            EmployeeAlreadyExistsException userExistsEx => Handle(
-                (int)HttpStatusCode.Conflict,
-                "Conflict",
-                "One or more conflicts occurred during creation.",
-                userExistsEx.Errors,
+            NotFoundException notFoundEx when notFoundEx.Errors is not null => Handle(
+                (int)HttpStatusCode.NotFound,
+                "Not Found",
+                notFoundEx.Message,
+                notFoundEx.Errors,
                 out errors
             ),
 
-            EmployeeNotFoundException userNotFoundex => (
+            NotFoundException notFoundEx => (
                 (int)HttpStatusCode.NotFound,
                 "Not Found",
-                userNotFoundex.Message
+                notFoundEx.Message
             ),
 
-            EmployeeTerminatedException userTerminatedex => (
+            ConflictException conflictEx when conflictEx.Errors is not null => Handle(
                 (int)HttpStatusCode.Conflict,
                 "Conflict",
-                userTerminatedex.Message
+                conflictEx.Message,
+                conflictEx.Errors,
+                out errors
             ),
 
-            InvalidEmployeeDataException invalidEmployeeEx => Handle(
+            ConflictException conflictEx => (
+                (int)HttpStatusCode.Conflict,
+                "Conflict",
+                conflictEx.Message
+            ),
+
+            BadRequestException badRequestEx when badRequestEx.Errors is not null => Handle(
                 (int)HttpStatusCode.BadRequest,
-                "Registration Failed",
-                "One or more employee fields are invalid.",
-                invalidEmployeeEx.Errors,
+                "Bad Request",
+                badRequestEx.Message,
+                badRequestEx.Errors,
                 out errors
             ),
 
-            DepartmentAlreadyExsistsException deptAlreadyExistsex => (
-                (int)HttpStatusCode.Conflict,
-                "Department Already Exists",
-                deptAlreadyExistsex.Message
+            BadRequestException badRequestEx => (
+                (int)HttpStatusCode.BadRequest,
+                "Bad Request",
+                badRequestEx.Message
             ),
 
-            DepartmentInUseException deptInUseex => (
-                (int)HttpStatusCode.Conflict,
-                "Department In Use",
-                deptInUseex.Message
-            ),
-
-            DepartmentNotFoundException deptNotFoundex => (
-                (int)HttpStatusCode.NotFound,
-                "Not Found",
-                deptNotFoundex.Message
-            ),
-
-            ShiftPatternNotFoundException deptNotFoundex => (
-                (int)HttpStatusCode.NotFound,
-                "Not Found",
-                deptNotFoundex.Message
-            ),
-
-            ShiftPatternAlreadyExistsException deptNotFoundex => (
-                (int)HttpStatusCode.NotFound,
-                "Not Found",
-                deptNotFoundex.Message
-            ),
-
-            ShiftPatternInUseException deptNotFoundex => (
-                (int)HttpStatusCode.NotFound,
-                "Not Found",
-                deptNotFoundex.Message
-            ),
-
-            DuplicateShiftPatternDayException deptNotFoundex => (
-                (int)HttpStatusCode.NotFound,
-                "Not Found",
-                deptNotFoundex.Message
-            ),
-
-            InvalidLoginException invalidLoginEx => (
+            UnauthorizedException unauthorizedEx when unauthorizedEx.Errors is not null => Handle(
                 (int)HttpStatusCode.Unauthorized,
                 "Unauthorized",
-                invalidLoginEx.Message
+                unauthorizedEx.Message,
+                unauthorizedEx.Errors,
+                out errors
             ),
 
-            InvalidSharedMessageException invalidSharedMessageEx => (
-                (int)HttpStatusCode.NotFound,
-                "Message not found",
-                invalidSharedMessageEx.Message
+            UnauthorizedException unauthorizedEx => (
+                (int)HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                unauthorizedEx.Message
             ),
 
             _ => (
                 (int)HttpStatusCode.InternalServerError,
                 "An internal server error has occurred.",
-                "Please try again later."
+                environment.IsDevelopment()
+                    ? $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}"
+                    : "Please try again later."
             ),
         };
 
@@ -139,8 +116,6 @@ public class GlobalExceptionHandler() : IExceptionHandler
         return true;
     }
 
-    // Helper so switch arms can populate errors while still returning valid
-    // (int, string string) tuple for Status/Title/Detail, keeping switch clean
     private static (int, string, string) Handle(
         int status,
         string title,
@@ -152,8 +127,6 @@ public class GlobalExceptionHandler() : IExceptionHandler
         return (status, title, detail);
     }
 
-    // FluentValidations PropertyName uses pascal case (Username) casing but our field errors use lowercase (username) to match react
-    // Normalized here so react only needs to match the lowercase convention.
     private static string LowercaseFirstLetter(string value) =>
         string.IsNullOrEmpty(value) ? value : char.ToLowerInvariant(value[0]) + value[1..];
 }

@@ -8,24 +8,9 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Rook.Api.Middleware;
 using Rook.Application.Services.Auth.Login;
-using Rook.Application.Services.Employees.Create;
 using FluentValidation;
-using Rook.Application.Services.Auth.Logout;
-using Rook.Application.Services.Auth.Refresh;
-using Rook.Domain.Entities.Tables.Employees;
 using Rook.Infrastructure.Hubs;
-using Rook.Application.Services.Employees.Update;
-using Rook.Application.Services.Employees.Delete;
-using Rook.Application.Services.Employees.List;
-using Rook.Application.Services.Employees.GetById;
-using Rook.Application.Services.Departments.Delete;
-using Rook.Application.Services.Departments.Create;
-using Rook.Application.Services.Departments.Update;
-using Rook.Application.Services.Departments.List;
-using Rook.Application.Services.ShiftPatterns.Create;
-using Rook.Application.Services.ShiftPatterns.Delete;
-using Rook.Application.Services.ShiftPatterns.Update;
-using Rook.Application.Services.ShiftPatterns.List;
+
 
 
 
@@ -44,28 +29,20 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddScoped<LoginService>();
-builder.Services.AddScoped<CreateEmployeeService>();
-builder.Services.AddScoped<UpdateEmployeeService>();
-builder.Services.AddScoped<DeleteEmployeeService>();
-builder.Services.AddScoped<ListEmployeesService>();
-builder.Services.AddScoped<GetByIdEmployeeService>();
-builder.Services.AddScoped<LogoutService>();
-builder.Services.AddScoped<RefreshService>();
-builder.Services.AddScoped<GetSharedMessageService>();
-builder.Services.AddScoped<UpdateSharedMessageService>();
-
-builder.Services.AddScoped<CreateDepartmentService>();
-builder.Services.AddScoped<DeleteDepartmentService>();
-builder.Services.AddScoped<UpdateDepartmentService>();
-builder.Services.AddScoped<ListDepartmentsService>();
-
-builder.Services.AddScoped<CreateShiftPatternService>();
-builder.Services.AddScoped<DeleteShiftPatternService>();
-builder.Services.AddScoped<UpdateShiftPatternService>();
-builder.Services.AddScoped<ListShiftPatternsService>();
 
 
+// Registers every class in Rook.Application whose name ends in "Service"
+// as a scoped DI service, using reflection instead of one AddScoped<T>()
+// line per service. New services are picked up automatically.
+var applicationAssembly = typeof(LoginService).Assembly;
+
+var serviceTypes = applicationAssembly.GetTypes()
+    .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Service"));
+
+foreach (var type in serviceTypes)
+{
+    builder.Services.AddScoped(type);
+}
 
 
 builder.Services.AddSignalR();

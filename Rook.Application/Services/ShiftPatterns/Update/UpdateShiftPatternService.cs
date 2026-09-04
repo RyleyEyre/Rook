@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Entities.Tables.Employees;
-using Rook.Domain.Exceptions.ShiftPatterns;
+using Rook.Domain.Entities.Tables.ShiftPatterns;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
+using Rook.Application.Services.ShiftPatterns.Common;
+
 namespace Rook.Application.Services.ShiftPatterns.Update;
 
 public class UpdateShiftPatternService(
@@ -16,7 +18,9 @@ public class UpdateShiftPatternService(
 
         if (shiftPattern is null)
         {
-            throw new ShiftPatternNotFoundException("No shift pattern with this id exists.");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         var conflictingShiftPattern = await dbContext.ShiftPatterns
@@ -24,7 +28,9 @@ public class UpdateShiftPatternService(
 
         if (conflictingShiftPattern is not null)
         {
-            throw new ShiftPatternAlreadyExistsException("A shift pattern with this name already exists.");
+            var field = nameof(request.Name);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "name"));
+            throw new ConflictException("A conflict occurred.", [error]);
         }
 
         var duplicateDays = request.Days
@@ -33,7 +39,9 @@ public class UpdateShiftPatternService(
 
         if (duplicateDays)
         {
-            throw new DuplicateShiftPatternDayException("Duplicate days are not allowed in a shift pattern.");
+            var field = nameof(request.Days);
+            var error = new FieldError(field, ErrorCode.DUPLICATE_VALUE.ToString(), ErrorMessages.For(ErrorCode.DUPLICATE_VALUE, "day"));
+            throw new ConflictException("A conflict occurred.", [error]);
         }
 
         shiftPattern.Name = request.Name;

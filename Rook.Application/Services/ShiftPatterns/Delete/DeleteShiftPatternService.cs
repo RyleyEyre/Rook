@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Exceptions.ShiftPatterns;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.ShiftPatterns.Delete;
@@ -14,14 +14,18 @@ public class DeleteShiftPatternService(
 
         if (shiftPattern is null)
         {
-            throw new ShiftPatternNotFoundException("No shift pattern exists with this id.");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
         
         var employeeCount = await dbContext.Employees.CountAsync(e => e.ShiftPatternId == request.Id);
 
         if (employeeCount > 0)
         {
-            throw new ShiftPatternInUseException($"This shift pattern is in use by {employeeCount} employee(s).");
+            var field = nameof(request.Id);
+            var error = new FieldError(field, ErrorCode.RECORD_IN_USE.ToString(), $"This shift pattern is in use by {employeeCount} employee(s).");
+            throw new ConflictException("This shift pattern cannot be deleted.", [error]);
         }
 
         dbContext.ShiftPatterns.Remove(shiftPattern);

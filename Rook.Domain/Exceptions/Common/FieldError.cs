@@ -1,2 +1,3 @@
 namespace Rook.Domain.Exceptions.Common;
-public sealed record FieldError(string? Property, string Error);
+
+public sealed record FieldError(string Property, string Code, string Message);

@@ -4,9 +4,8 @@ using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Infrastructure.Authentication;
 using Rook.Domain.Entities;
-using Rook.Domain.Exceptions.Auth;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Rook.Domain.Exceptions.Common;
 
 
 namespace Rook.Application.Services.Auth.Refresh;
@@ -24,13 +23,13 @@ public class RefreshService(
 
         if (storedToken is null || !storedToken.IsActive)
         {
-            throw new ExpiredRefreshTokenException("Invalid or expired refresh token");
+            throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
         var user = await userManager.FindByIdAsync(storedToken.UserId);
         if (user is null)
         {
-            throw new ExpiredRefreshTokenException("Invalid or expired refresh token");
+            throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
         // Rotate: the old refresh token is single-use — revoke it now that

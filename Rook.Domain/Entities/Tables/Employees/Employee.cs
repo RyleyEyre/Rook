@@ -1,3 +1,6 @@
+using Rook.Domain.Entities.Tables.Departments;
+using Rook.Domain.Entities.Tables.ShiftPatterns;
+
 namespace Rook.Domain.Entities.Tables.Employees;
 
 public class Employee

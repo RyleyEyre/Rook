@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Rook.Domain.Exceptions.Employees;
+using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 
@@ -20,13 +20,17 @@ public class GetByIdEmployeeService(
 
         if (employee is null)
         {
-            throw new EmployeeNotFoundException("No employee exists with this id.");
+            var field = nameof(request.UserId);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "user id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         var user = await userManager.FindByIdAsync(request.UserId);
         if (user is null)
         {
-            throw new EmployeeNotFoundException("No employee exists with this id.");
+            var field = nameof(request.UserId);
+            var error = new FieldError(field, ErrorCode.RECORD_NOT_FOUND.ToString(), ErrorMessages.For(ErrorCode.RECORD_NOT_FOUND, "user id"));
+            throw new NotFoundException("The requested record was not found.", [error]);
         }
 
         var roles = await userManager.GetRolesAsync(user);
