@@ -21,6 +21,8 @@ public class DeleteShiftPatternService(
         
         var employeeCount = await dbContext.Employees.CountAsync(e => e.ShiftPatternId == request.Id);
 
+        // Prevents the attempt of a delete if employees are part of the shift pattern before it reaches the DB, 
+        // The db is also restricted so it would fail as well.
         if (employeeCount > 0)
         {
             var field = nameof(request.Id);

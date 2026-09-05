@@ -4,7 +4,6 @@ using Rook.Infrastructure.Data;
 
 namespace Rook.Application.Services.Departments.Update;
 
-
 public class UpdateDepartmentService(
     ApplicationDbContext dbContext
 )
@@ -20,6 +19,7 @@ public class UpdateDepartmentService(
             throw new NotFoundException("The requested record was not found.", [error]);
         }
 
+        // Checks to see if the new department normalized name already belongs to an exsisting department, if so reject the request.
         var conflictingDepartment = await dbContext.Departments
             .FirstOrDefaultAsync(d => d.NormalizedName == request.Name.ToUpperInvariant() && d.Id != request.Id);
 

@@ -38,7 +38,7 @@ public class DeleteEmployeeService(
 
         // Free up the original username and email for reuse, and clearly mark the
         // account as terminated in the database, rather than leaving the
-        // clean username permanently reserved by someone no longer employed.
+        // clean username and email permanently reserved by someone no longer employed.
 
         employee.TerminationDate = request.TerminationDate;
 

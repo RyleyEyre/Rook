@@ -43,6 +43,8 @@ public class UpdateEmployeeService(
         var conflictErrors = new List<FieldError>();
 
         var existingUserByUsername = await userManager.FindByNameAsync(request.Username);
+
+        // Checks to see if the new username and email are tied to an account which isn't the requestor and rejects the request.
         if (existingUserByUsername is not null && existingUserByUsername.Id != request.UserId)
         {
             var field = nameof(request.Username);

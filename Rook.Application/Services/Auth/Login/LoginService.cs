@@ -21,6 +21,7 @@ public class LoginService(
 
         await validator.ValidateAndThrowAsync(request);
 
+        // Exception kept vague to prevent enumaration login attempts.
         var user = await userManager.FindByNameAsync(request.Username);
         if (user is null)
         {
@@ -39,10 +40,6 @@ public class LoginService(
 
         var userProfile = new UserProfile();
         userProfile.Theme = user.Theme;
-
-
-    // DbContext.Add/Update/Remove only stage changes in memory — nothing hits
-    // the database until SaveChangesAsync() is called to commit them.
 
     // TODO: no cleanup/limit on refresh tokens yet — a user logging in repeatedly
     // accumulates unbounded rows here, and expired/revoked tokens are never deleted.

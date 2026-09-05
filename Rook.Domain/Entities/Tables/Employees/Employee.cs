@@ -17,6 +17,7 @@ public class Employee
     public int? ShiftPatternId { get; set; }
     public ShiftPattern? ShiftPattern { get; set; }
 
+    // TODO create a management portal
     public string? ManagerId { get; set; }
 
     public string? FusionId { get; set; }

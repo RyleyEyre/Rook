@@ -11,9 +11,6 @@ using Rook.Application.Services.Auth.Login;
 using FluentValidation;
 using Rook.Infrastructure.Hubs;
 
-
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
