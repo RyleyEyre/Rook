@@ -1,0 +1,13 @@
+.departments-page__stale-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.departments-page__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

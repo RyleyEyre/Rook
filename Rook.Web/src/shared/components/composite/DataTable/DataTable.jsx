@@ -65,6 +65,7 @@ export function DataTable({
   initialSort = null,
   emptyMessage = 'No records to show.',
   maxHeight = 560,
+  showSelectionCount = true,
 }) {
   const instanceId = useId()
   const [sort, setSort] = useState(initialSort)
@@ -140,7 +141,11 @@ export function DataTable({
         <div className="data-table-toolbar">
           {actionsPosition === 'top' ? (
             <div className="data-table-toolbar__left">
-              <span className="data-table-toolbar__count">{selectedRows.length} selected</span>
+              {showSelectionCount && (
+              <span className="data-table-toolbar__count">
+                {selectedRows.length} selected
+              </span>
+              )}
               {showDeselectAll && (
                 <button
                   type="button"

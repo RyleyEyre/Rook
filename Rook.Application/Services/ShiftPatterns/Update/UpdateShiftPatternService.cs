@@ -3,14 +3,17 @@ using Rook.Domain.Entities.Tables.ShiftPatterns;
 using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
 using Rook.Application.Services.ShiftPatterns.Common;
+using Rook.Infrastructure.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Rook.Application.Services.ShiftPatterns.Update;
 
 public class UpdateShiftPatternService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<UpdateShiftPatternResponse> Update(UpdateShiftPatternCommand request)
+    public async Task<UpdateShiftPatternResponse> Update(UpdateShiftPatternCommand request, string? connectionId)
     {
         var shiftPattern = await dbContext.ShiftPatterns
             .Include(sp => sp.Days)
@@ -61,6 +64,9 @@ public class UpdateShiftPatternService(
         }
 
         await dbContext.SaveChangesAsync();
+    
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("ShiftPatternList", excludedConnections).SendAsync("ShiftPatternListChanged");
 
         return new UpdateShiftPatternResponse(
             Id: shiftPattern.Id,

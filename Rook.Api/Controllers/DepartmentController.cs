@@ -21,7 +21,8 @@ public class DepartmentController(
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDepartmentCommand request)
     {
-        var result = await createDepartmentService.Create(request);
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+        var result = await createDepartmentService.Create(request, connectionId);
         return Ok(
             new
             {
@@ -37,8 +38,10 @@ public class DepartmentController(
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
         var command = new DeleteDepartmentCommand(id);
-        await deleteDepartmentService.Delete(command);
+        
+        await deleteDepartmentService.Delete(command, connectionId);
         return Ok(
             new
             {
@@ -52,12 +55,13 @@ public class DepartmentController(
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateDepartmentRequest request)
     {
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
         var command = new UpdateDepartmentCommand(
             Id: id,
             Name: request.Name
         );
 
-        var result = await updateDepartmentService.Update(command);
+        var result = await updateDepartmentService.Update(command, connectionId);
         return Ok(
             new
             {

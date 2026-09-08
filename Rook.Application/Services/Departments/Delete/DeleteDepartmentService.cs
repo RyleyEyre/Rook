@@ -11,7 +11,7 @@ public class DeleteDepartmentService(
     IHubContext<LiveHub> hubContext
 )
 {
-    public async Task Delete(DeleteDepartmentCommand request)
+    public async Task Delete(DeleteDepartmentCommand request, string? connectionId)
     {
         var department = await dbContext.Departments.FindAsync(request.Id);
 
@@ -36,6 +36,7 @@ public class DeleteDepartmentService(
         dbContext.Departments.Remove(department);
         await dbContext.SaveChangesAsync();
 
-        await hubContext.Clients.Group("DepartmentList").SendAsync("ListChanged");
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("DepartmentList", excludedConnections).SendAsync("DepartmentListChanged");
     }
 }

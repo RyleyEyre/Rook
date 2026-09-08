@@ -3,14 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using Rook.Domain.Entities.Tables.ShiftPatterns;
 using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Rook.Application.Services.ShiftPatterns.Create;
 
 public class CreateShiftPatternService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<CreateShiftPatternResponse> Create(CreateShiftPatternCommand request)
+    public async Task<CreateShiftPatternResponse> Create(CreateShiftPatternCommand request, string? connectionId)
     {
 
         var duplicateDays = request.Days
@@ -52,6 +55,9 @@ public class CreateShiftPatternService(
 
         dbContext.ShiftPatterns.Add(shiftPattern);
         await dbContext.SaveChangesAsync();
+
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("ShiftPatternList", excludedConnections).SendAsync("ShiftPatternListChanged");
 
         return new CreateShiftPatternResponse(
             Id: shiftPattern.Id,

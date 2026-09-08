@@ -20,7 +20,8 @@ public class ShiftPatternController(
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateShiftPatternCommand request)
     {
-        var result = await createShiftPatternService.Create(request);
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+        var result = await createShiftPatternService.Create(request, connectionId);
         return Ok(
             new
             {
@@ -35,8 +36,9 @@ public class ShiftPatternController(
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
         var command = new DeleteShiftPatternCommand(id);
-        await deleteShiftPatternService.Delete(command);
+        await deleteShiftPatternService.Delete(command, connectionId);
         return Ok(
             new
             {
@@ -50,13 +52,15 @@ public class ShiftPatternController(
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateShiftPatternRequest request)
     {
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+
         var command = new UpdateShiftPatternCommand(
             Id: id,
             Name: request.Name,
             Days: request.Days
         );
 
-        var result = await updateShiftPatternService.Update(command);
+        var result = await updateShiftPatternService.Update(command,connectionId);
         return Ok(
             new
             {
