@@ -5,46 +5,8 @@ import { Button, IconButton } from '@shared/components/composite/Button'
 import { HoldToConfirmButton, HoldToConfirmIconButton } from '@shared/components/composite/HoldToConfirmButton'
 import { Checkbox } from '@shared/components/composite/Field'
 import { ConfirmModal } from '@shared/components/composite/ConfirmModal'
+import { Menu } from '@shared/components/composite/Menu'
 
-/**
- * Generic searchable/sortable/scrollable table, extracted from the Employee
- * Table so any page can reuse the same look with its own columns and data.
- *
- * Configurable per the brief:
- * - `actionsPosition`: 'side' (per-row Edit/Delete icons, like the Employee
- *   Table) or 'top' (a select column on each row + a toolbar above the
- *   table with bulk Edit/Delete icons).
- * - `selectionMode`: 'single' | 'multi' — only meaningful when
- *   actionsPosition is 'top'. 'single' renders a radio dot per row (native
- *   radio-group semantics enforce single selection); 'multi' renders
- *   checkboxes plus a "select all" checkbox in the header.
- * - `showEdit` / `showDelete`: independently show or hide each action —
- *   e.g. a read-only-but-deletable table, or an editable one nobody may
- *   delete from. Applies to both the side icons and the top toolbar.
- * - `showCreate` / `onCreate` / `createLabel`: an optional "+ Create"
- *   button in the same bar as the top toolbar (or its own slim bar, if
- *   actionsPosition is 'side' and there's no toolbar otherwise).
- * - `showDeselectAll`: a "Deselect all" control next to the selection
- *   count. It's also the only way to clear a 'single' selection — a native
- *   radio doesn't fire a change event when you click the one that's
- *   already checked, so without this there'd be no way to get back to
- *   "nothing selected" once you'd picked a row.
- * - `deleteConfirmSeconds`: how long Delete must be held before it fires.
- *   0 means an instant, un-confirmed delete on a single click — anything
- *   above 0 renders the press-and-hold fill button for that many seconds.
- *   The top toolbar's Delete control always looks the same regardless of
- *   selection count (no layout jump between "Hold to delete" and a plain
- *   button) — but completing it with more than one row selected doesn't
- *   delete anything yet. It opens `ConfirmModal` instead, which asks the
- *   user to type CONFIRM (not hold again — that already happened) before
- *   the actual delete, naming the exact count and record type
- *   (`recordLabel`/`recordLabelPlural`). A single row's delete never goes
- *   through the modal.
- *
- * Filtering/searching is left to the caller (pass in already-filtered
- * `rows`) since what fields to search is domain-specific; sorting is
- * handled internally since it only needs a key + optional comparator.
- */
 export function DataTable({
   columns,
   rows,
@@ -66,20 +28,36 @@ export function DataTable({
   emptyMessage = 'No records to show.',
   maxHeight = 560,
   showSelectionCount = true,
+  // Independent of actionsPosition — a compact per-row "..." menu (Edit /
+  // Delete / whatever else is passed via `rowActions`), rather than either
+  // of the two existing per-row-icons / bulk-toolbar layouts. Can be
+  // combined with actionsPosition="top" (select col + bulk toolbar *and* a
+  // per-row menu for quick single-row actions without selecting first), or
+  // used on its own — when it's on, it replaces the old per-row icon pair
+  // that actionsPosition="side" would otherwise render, so there's never
+  // two actions columns fighting for the same rightmost slot.
+  showActionsMenu = false,
+  // (row) => [{ key, label, icon?, onClick, variant?: 'danger', disabled? }]
+  // Extra items spliced in between Edit and Delete in the row menu — the
+  // "arbitrary number of actions" hook. Ignored unless showActionsMenu.
+  rowActions = () => [],
+  // (row) => string — optional. Only consulted when menuDeleteMode is
+  // 'confirm'. When provided, the menu's Delete uses ConfirmModal's "type
+  // the record's name, then hold" flow instead of its generic "type
+  // CONFIRM" one. Without it, falls back to the generic flow.
+  getRecordName,
+  // How the row menu's Delete item behaves — two full patterns, not a mix:
+  // 'confirm' opens ConfirmModal (typed text, then hold, in a modal) same
+  // as before. 'hold' skips the modal entirely — Delete renders as its own
+  // press-and-hold fill button right inside the open menu, and finishing
+  // the hold deletes immediately, no modal in between.
+  menuDeleteMode = 'confirm',
 }) {
   const instanceId = useId()
   const [sort, setSort] = useState(initialSort)
   const [selected, setSelected] = useState(() => new Set())
-  // Snapshot of the rows a bulk delete was requested for, frozen at the
-  // moment the modal opens — the modal stays open ~700ms after confirming
-  // (to show the hold button's checkmark) while `selected` clears
-  // immediately, so binding the modal to the live selection would flicker
-  // its count to 0 mid-animation.
   const [pendingDelete, setPendingDelete] = useState(null)
 
-  // A prior selection can't carry across a mode switch (e.g. 3 rows picked
-  // in multi mode are meaningless once you flip to single, or to side-icons
-  // where there's no selection concept at all).
   useEffect(() => {
     setSelected(new Set())
   }, [actionsPosition, selectionMode])
@@ -119,7 +97,10 @@ export function DataTable({
 
   const selectedRows = sorted.filter((row) => selected.has(rowKey(row)))
   const showSelectCol = actionsPosition === 'top'
-  const showActionsCol = actionsPosition === 'side' && (showEdit || showDelete)
+  // showActionsMenu takes over the rightmost per-row slot when it's on, so
+  // the old side-icons rendering steps aside rather than doubling up.
+  const showActionsCol = actionsPosition === 'side' && (showEdit || showDelete) && !showActionsMenu
+  const showMenuCol = showActionsMenu
   const showTopBar = actionsPosition === 'top' || showCreate
 
   function handleDelete(targetRows) {
@@ -133,6 +114,43 @@ export function DataTable({
     } else {
       handleDelete(selectedRows)
     }
+  }
+
+  // A row menu click can't offer a hold-to-confirm gesture by itself the
+  // way the side-icon and toolbar Delete controls do — a click is just a
+  // click. So it goes through ConfirmModal instead, which supplies its
+  // own hold-to-delete button at the end. deleteConfirmSeconds is still
+  // the toggle: 0 means this table's delete is meant to be frictionless
+  // everywhere, so skip the modal and delete immediately, same as the
+  // plain (non-hold) IconButton/Button used elsewhere when it's 0.
+  function requestDeleteFromMenu(row) {
+    if (deleteConfirmSeconds <= 0) {
+      handleDelete([row])
+    } else {
+      setPendingDelete([row])
+    }
+  }
+
+  function buildRowMenuItems(row) {
+    const items = []
+    if (showEdit) items.push({ key: 'edit', label: 'Edit', icon: 'edit', onClick: () => onEdit?.(row) })
+    items.push(...rowActions(row))
+    if (showDelete) {
+      if (menuDeleteMode === 'hold') {
+        items.push({
+          key: 'delete',
+          type: 'hold',
+          label: 'Hold to delete',
+          holdingLabel: 'Deleting…',
+          doneLabel: 'Deleted',
+          holdMs: deleteConfirmSeconds > 0 ? deleteConfirmSeconds * 1000 : 2000,
+          onClick: () => handleDelete([row]),
+        })
+      } else {
+        items.push({ key: 'delete', label: 'Delete', icon: 'trash', variant: 'danger', onClick: () => requestDeleteFromMenu(row) })
+      }
+    }
+    return items
   }
 
   return (
@@ -205,6 +223,8 @@ export function DataTable({
         count={pendingDelete?.length ?? 0}
         recordLabel={recordLabel}
         recordLabelPlural={recordLabelPlural}
+        recordName={pendingDelete?.length === 1 ? getRecordName?.(pendingDelete[0]) : undefined}
+        holdMs={deleteConfirmSeconds * 1000}
         onConfirm={() => handleDelete(pendingDelete ?? [])}
       />
 
@@ -236,6 +256,7 @@ export function DataTable({
                   </th>
                 ))}
                 {showActionsCol && <th style={{ textAlign: 'right' }} />}
+                {showMenuCol && <th style={{ textAlign: 'right' }} />}
               </tr>
             </thead>
             <tbody>
@@ -243,9 +264,13 @@ export function DataTable({
                 const key = rowKey(row)
                 const isSelected = selected.has(key)
                 return (
-                  <tr key={key} className={isSelected ? 'is-selected' : ''}>
+                  <tr
+                    key={key}
+                    className={cn(isSelected && 'is-selected', showSelectCol && 'is-row-clickable')}
+                    onClick={showSelectCol ? () => toggleRow(key) : undefined}
+                  >
                     {showSelectCol && (
-                      <td className="data-table__select-col">
+                      <td className="data-table__select-col" onClick={(e) => e.stopPropagation()}>
                         {selectionMode === 'multi' ? (
                           <Checkbox checked={isSelected} onChange={() => toggleRow(key)} aria-label="Select row" />
                         ) : (
@@ -277,6 +302,13 @@ export function DataTable({
                               <IconButton icon="trash" label="Delete" variant="danger" onClick={() => handleDelete([row])} />
                             )
                           )}
+                        </div>
+                      </td>
+                    )}
+                    {showMenuCol && (
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <div className="cell-actions">
+                          <Menu items={buildRowMenuItems(row)} label="Row actions" />
                         </div>
                       </td>
                     )}

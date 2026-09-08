@@ -1,0 +1,34 @@
+.menu-anchor { display: inline-flex; }
+/* Overrides the shared .icon-btn hover here only — that default is an
+   opaque var(--color-panel-2) box, which looks like a mismatched patch
+   of plain background sitting on top of a selected row's translucent
+   accent tint. A translucent accent tint of our own blends correctly
+   over either a plain or a selected/highlighted row. */
+.menu-anchor .icon-btn:hover { background: rgba(var(--color-accent-rgb), 0.14); color: var(--color-accent); }
+
+.menu-scrim { position: fixed; inset: 0; z-index: 90; background: transparent; }
+
+.menu__panel {
+  position: fixed; z-index: 95; min-width: 170px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--color-panel); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  animation: modal-in 130ms ease;
+}
+
+.menu__item {
+  display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 10px;
+  border-radius: var(--radius-sm); background: none; border: none; text-align: left;
+  color: var(--color-text-muted); font-size: 13px; cursor: pointer; white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.menu__item:hover:not(:disabled) { background: var(--color-panel-2); color: var(--color-text); }
+.menu__item:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.menu__item--danger { color: var(--color-danger); }
+.menu__item--danger:hover:not(:disabled) { background: rgba(var(--color-danger-rgb), 0.12); color: var(--color-danger); }
+
+.menu__empty { padding: 8px 10px; font-size: 12.5px; color: var(--color-text-faint); }
+
+.menu__item-hold { padding: 2px; }
+.menu__item-hold .hold-btn { width: 100%; min-width: 0; padding: 8px 10px; font-size: 13px; }

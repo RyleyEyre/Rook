@@ -16,6 +16,14 @@ const columns = [
   { key: 'name', label: 'Name', sortable: true },
 ]
 
+// Keeps the toast readable even in the (currently unreachable, since this
+// page's DataTable is selectionMode="single") case of a multi-row delete —
+// spelling out a dozen names would just make the toast unreadable.
+function formatNameList(names) {
+  if (names.length <= 3) return names.join(', ')
+  return `${names.slice(0, 3).join(', ')}, and ${names.length - 3} more`
+}
+
 export function DepartmentsPage() {
   const apiFetch = useApiFetch()
   const { push } = useToast()
@@ -52,7 +60,7 @@ export function DepartmentsPage() {
   }, [])
 
   useLiveConnection('DepartmentList', {
-    DepartmentListChanged: () => setStaleBanner(true),
+    ListChanged: () => setStaleBanner(true),
   })
 
   const filtered = useMemo(() => {
@@ -122,11 +130,13 @@ export function DepartmentsPage() {
     const results = await Promise.allSettled(rows.map((row) => deleteDepartment(apiFetch, row.id)))
 
     const deletedIds = new Set()
+    const deletedNames = []
     let firstError = null
 
     results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
         deletedIds.add(rows[i].id)
+        deletedNames.push(rows[i].name)
       } else if (!firstError) {
         firstError = result.reason
       }
@@ -137,6 +147,7 @@ export function DepartmentsPage() {
       push({
         tone: 'success',
         title: deletedIds.size === 1 ? 'Department deleted' : `${deletedIds.size} departments deleted`,
+        message: formatNameList(deletedNames),
       })
     }
 

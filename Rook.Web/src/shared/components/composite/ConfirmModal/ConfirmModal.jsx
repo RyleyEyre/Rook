@@ -19,7 +19,7 @@ const CONFIRM_WORD = 'CONFIRM'
  *   again, naming the exact count and record type.
  */
 export function ConfirmModal({
-  open, onClose, count = 1, recordLabel = 'record', recordLabelPlural, recordName, consequence, onConfirm,
+  open, onClose, count = 1, recordLabel = 'record', recordLabelPlural, recordName, consequence, onConfirm, holdMs = 2000,
 }) {
   const [typed, setTyped] = useState('')
   const isSingle = Boolean(recordName)
@@ -68,6 +68,7 @@ export function ConfirmModal({
             holdingLabel="Keep holding to delete…"
             doneLabel="Deleted"
             disabled={!matches}
+            holdMs={holdMs}
             onConfirm={() => {
               onConfirm?.()
               setTimeout(close, 700)

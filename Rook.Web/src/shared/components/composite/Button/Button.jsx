@@ -27,7 +27,7 @@ export function Button({
   )
 }
 
-export function IconButton({ icon, label, variant = 'ghost', className = '', ...rest }) {
+export function IconButton({ icon, label, variant = 'ghost', size = 16, className = '', ...rest }) {
   return (
     <button
       type="button"
@@ -36,7 +36,7 @@ export function IconButton({ icon, label, variant = 'ghost', className = '', ...
       title={label}
       {...rest}
     >
-      <Icon name={icon} size={16} />
+      <Icon name={icon} size={size} />
     </button>
   )
 }

@@ -26,6 +26,7 @@
 .data-table th.is-sorted .th-inner svg { opacity: 1; color: var(--color-accent); }
 .data-table tbody td { padding: 11px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); vertical-align: middle; }
 .data-table tbody tr { transition: background var(--transition-fast); }
+.data-table tbody tr.is-row-clickable { cursor: pointer; }
 .data-table tbody tr:hover { background: var(--color-panel-2); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr.is-terminated { opacity: 0.6; }
