@@ -1,0 +1,22 @@
+/* Modal.jsx — the dialog shell itself. The `modal-in` keyframe here is
+   also reused by NavLink.css's dropdown/sideout panel for a matching
+   pop-in; keyframes are global regardless of which file declares them, so
+   that's fine as long as this file stays imported. */
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(10, 10, 14, 0.55); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fade-in 150ms ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  width: 100%; max-width: 460px; background: var(--color-panel); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); animation: modal-in 180ms ease;
+}
+@keyframes modal-in { from { transform: translateY(12px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+.modal--danger { border-color: rgba(var(--color-danger-rgb), 0.4); }
+.modal__header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--color-border); }
+.modal__header h2 { margin: 0; font-size: 16px; }
+.modal--danger .modal__header h2 { color: var(--color-danger); }
+.modal__close { background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; }
+.modal__body { padding: 20px; }
+.modal__footer { padding: 16px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 10px; }

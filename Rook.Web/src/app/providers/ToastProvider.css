@@ -1,0 +1,12 @@
+.toast-stack { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 200; width: 320px; max-width: calc(100vw - 40px); }
+.toast {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-md);
+  background: var(--color-panel); border: 1px solid var(--color-border); box-shadow: var(--shadow-lg);
+  color: var(--color-text); animation: toast-in 220ms ease;
+}
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast__body { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; }
+.toast__close { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
+.toast--success .toast__body strong, .toast--success svg { color: var(--color-success); }
+.toast--error .toast__body strong, .toast--error svg { color: var(--color-danger); }
+.toast--info svg { color: var(--color-info); }

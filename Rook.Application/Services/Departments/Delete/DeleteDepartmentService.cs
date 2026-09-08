@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Rook.Application.Services.Departments.Delete;
 
 public class DeleteDepartmentService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
     public async Task Delete(DeleteDepartmentCommand request)
@@ -32,5 +35,7 @@ public class DeleteDepartmentService(
 
         dbContext.Departments.Remove(department);
         await dbContext.SaveChangesAsync();
+
+        await hubContext.Clients.Group("DepartmentList").SendAsync("ListChanged");
     }
 }

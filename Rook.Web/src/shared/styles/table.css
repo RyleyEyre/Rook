@@ -1,0 +1,63 @@
+/* DataTable.jsx (and EmployeeTablePage.jsx's own bespoke table, which
+   shares the same classes) — the search toolbar row, the scrollable
+   bordered table itself, and the "top" actions mode's select column +
+   bulk-action toolbar. */
+
+.table-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.table-toolbar .field { margin-bottom: 0; min-width: 240px; flex: 1; }
+.table-toolbar__spacer { flex: 1; }
+.table-toolbar__count { font-size: 12.5px; color: var(--color-text-muted); white-space: nowrap; }
+
+.table-wrap {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-panel);
+  box-shadow: var(--shadow-sm);
+}
+.table-scroll { max-height: 560px; overflow-y: auto; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 900px; }
+.data-table thead th {
+  position: sticky; top: 0; z-index: 2; background: var(--color-bg-alt); text-align: left;
+  padding: 11px 16px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-muted); border-bottom: 1px solid var(--color-border); white-space: nowrap;
+}
+.data-table th.is-sortable { cursor: pointer; user-select: none; }
+.data-table th.is-sortable:hover { color: var(--color-text); }
+.data-table th .th-inner { display: inline-flex; align-items: center; gap: 5px; }
+.data-table th .th-inner svg { opacity: 0.55; }
+.data-table th.is-sorted .th-inner svg { opacity: 1; color: var(--color-accent); }
+.data-table tbody td { padding: 11px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); vertical-align: middle; }
+.data-table tbody tr { transition: background var(--transition-fast); }
+.data-table tbody tr:hover { background: var(--color-panel-2); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr.is-terminated { opacity: 0.6; }
+.data-table tbody tr.is-selected { background: rgba(var(--color-accent-rgb), 0.08); }
+.data-table tbody tr.is-selected:hover { background: rgba(var(--color-accent-rgb), 0.13); }
+.data-table .cell-name { font-weight: 600; }
+.data-table .cell-sub { color: var(--color-text-muted); font-size: 12px; }
+.data-table .cell-mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-muted); }
+.data-table .cell-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.data-table .cell-name-wrap { display: flex; align-items: center; gap: 10px; }
+.data-table__select-col { width: 40px; padding-left: 16px !important; padding-right: 0 !important; }
+.table-radio { display: inline-flex; }
+
+.table-empty { padding: 60px 20px; text-align: center; color: var(--color-text-muted); }
+
+/* "Top" actions mode: a select column on each row + this toolbar (bulk
+   Edit/Delete/Create, Deselect all) instead of per-row icons. */
+.data-table-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; margin-bottom: 10px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); background: var(--color-panel-2);
+}
+.data-table-toolbar__left { display: flex; align-items: center; gap: 12px; }
+.data-table-toolbar__count { font-size: 12.5px; color: var(--color-text-muted); font-weight: 600; }
+.data-table-toolbar__deselect {
+  background: none; border: none; padding: 0; color: var(--color-accent); font-size: 12.5px; font-weight: 600;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+}
+.data-table-toolbar__deselect:hover:not(:disabled) { color: var(--color-accent-hover); }
+.data-table-toolbar__deselect:disabled { color: var(--color-text-faint); cursor: not-allowed; text-decoration: none; }
+.data-table-toolbar__actions { display: flex; gap: 4px; }
+
+@media (max-width: 640px) {
+  .table-toolbar .field { min-width: 100%; }
+}

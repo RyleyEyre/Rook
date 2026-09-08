@@ -1,0 +1,46 @@
+/* The nav-link/dropdown look shared by both Header.jsx and Sidebar.jsx —
+   lives in app/layout/ rather than shared/components/ since it's specific
+   to this app's own navigation chrome, not a generic reusable UI-kit
+   piece. Both files import this same file, so it's genuinely one shared
+   style, not two copies that happen to look alike.
+
+   Layout-specific tweaks (full width in the sidebar, collapsing on
+   narrow screens, which way the chevron rotates) are deliberately NOT
+   here — they live as their own `side-*`-prefixed modifier classes in
+   Sidebar.css instead and get applied alongside these via `cn()`. */
+
+.nav-link {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-md);
+  background: none; border: none; color: var(--color-text-muted); font-size: 13.5px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; text-align: left; text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.nav-link:hover { background: var(--color-panel-2); color: var(--color-text); }
+.nav-link.is-active { background: rgba(var(--color-accent-rgb), 0.12); color: var(--color-accent); }
+
+.nav-dropdown { position: relative; }
+.nav-dropdown__chevron { margin-left: auto; transition: transform var(--transition-fast); flex: none; }
+.nav-dropdown__chevron.is-open-down { transform: rotate(180deg); }
+.nav-dropdown__chevron.is-open-right { transform: rotate(90deg); }
+
+.nav-scrim { position: fixed; inset: 0; z-index: 65; background: transparent; }
+
+.nav-dropdown__panel {
+  position: absolute; z-index: 70; min-width: 200px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--color-panel); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  animation: modal-in 130ms ease;
+}
+.nav-dropdown__panel--below { top: calc(100% + 6px); left: 0; }
+.nav-dropdown__panel--right { top: 0; left: calc(100% + 8px); }
+
+.nav-dropdown__item {
+  display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 10px;
+  border-radius: var(--radius-sm); background: none; border: none; text-align: left;
+  color: var(--color-text-muted); font-size: 13px; cursor: pointer; white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.nav-dropdown__item:hover { background: var(--color-panel-2); color: var(--color-text); }
+.nav-dropdown__item.is-active { background: rgba(var(--color-accent-rgb), 0.12); color: var(--color-accent); }

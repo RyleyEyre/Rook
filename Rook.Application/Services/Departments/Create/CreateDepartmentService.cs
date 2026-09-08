@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Rook.Domain.Entities.Tables.Departments;
 using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Hubs;
 
 namespace Rook.Application.Services.Departments.Create;
 
 public class CreateDepartmentService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
     public async Task<CreateDepartmentResponse> Create(CreateDepartmentCommand request)
@@ -29,6 +32,8 @@ public class CreateDepartmentService(
         dbContext.Departments.Add(department);
         await dbContext.SaveChangesAsync();
 
+        await hubContext.Clients.Group("DepartmentList").SendAsync("ListChanged");
+        
         return new CreateDepartmentResponse(department.Id, department.Name);
     }
 }

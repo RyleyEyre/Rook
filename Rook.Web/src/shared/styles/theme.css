@@ -1,0 +1,81 @@
+/* ============================================================
+   Rook UI — Terminal theme. Monospace-forward, near-black panels in
+   dark mode, faint scanline overlay. "Light" mode is a phosphor-on-
+   paper terminal look rather than a literal light UI, kept for parity
+   with the mode toggle.
+
+   Flat by design: ordinary black-based shadows, no neon/glow halo
+   bleeding out from behind panels. (An earlier version of this had an
+   opt-in accent-colored glow; it's gone entirely here, not just
+   turned off, since this project is meant as a single clean reference
+   rather than a multi-look comparison tool.)
+
+   System-fonts-only: every name below is a monospace font already
+   installed by a mainstream OS (Windows, macOS, or Linux/DejaVu), or,
+   for `ui-monospace`, a browser keyword that resolves to the OS's own
+   default monospace font. No @font-face, no CDN request, nothing to
+   license or bundle — the app makes zero network requests for fonts.
+   (An earlier version of this offered JetBrains Mono as a webfont
+   option; it's been removed entirely, same reasoning as the glow.)
+   ============================================================ */
+
+:root {
+  --font-sans: ui-monospace, 'Cascadia Mono', 'Cascadia Code', Consolas, Menlo, Monaco, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'Cascadia Code', Consolas, Menlo, Monaco, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+
+  /* Light mode: phosphor-on-paper terminal */
+  --color-bg: #f4f2ea;
+  --color-bg-alt: #e9e6d8;
+  --color-panel: #fbfaf3;
+  --color-panel-2: #ece9dc;
+  --color-border: #cfcab5;
+  --color-border-strong: #a9a48c;
+  --color-text: #1c1b13;
+  --color-text-muted: #55523f;
+  --color-text-faint: #857f65;
+
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --shadow-sm: none;
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-mode='dark'] {
+  --color-bg: #05070a;
+  --color-bg-alt: #010203;
+  --color-panel: #0a0e14;
+  --color-panel-2: #10151d;
+  --color-border: #1e2a33;
+  --color-border-strong: #2c3e46;
+  --color-text: #d7fbe8;
+  --color-text-muted: #6f8a86;
+  --color-text-faint: #465856;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+body { letter-spacing: 0.01em; }
+[data-mode='dark'] body {
+  background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 3px);
+}
+h1, h2, .card__title, .modal__header h2 { text-transform: uppercase; letter-spacing: 0.06em; }
+/* :root-prefixed for specificity, not scope (it still applies in both
+   modes) — NavLink.css's own .nav-link/.nav-dropdown__item already set
+   font-size at the same specificity as a plain `.nav-link` selector would,
+   and since every component's CSS now arrives via a side-effect import in
+   its own .jsx file, *when* NavLink.css gets injected relative to this
+   file isn't something this file controls — it depends on the JS import
+   graph, not source order. Winning on specificity instead of hoping for
+   load order is the only way this override is guaranteed to stick
+   regardless of which JS module happens to import NavLink.css first. */
+:root :is(.nav-link, .nav-dropdown__item) { text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; }
+[data-mode='dark'] .card,
+[data-mode='dark'] .login-card,
+[data-mode='dark'] .modal,
+[data-mode='dark'] .table-wrap { border-color: var(--color-border); }
+[data-mode='dark'] .data-table thead th { color: var(--color-accent); }
+.cell-mono, .login-card__brand span { font-family: var(--font-mono); }
+[data-mode='dark'] ::selection { background: rgba(var(--color-accent-rgb), 0.4); }

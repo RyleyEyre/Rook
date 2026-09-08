@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Rook.Infrastructure.Data;
+using Rook.Application.Services.ShiftPatterns.Common;
 
 namespace Rook.Application.Services.ShiftPatterns.List;
 

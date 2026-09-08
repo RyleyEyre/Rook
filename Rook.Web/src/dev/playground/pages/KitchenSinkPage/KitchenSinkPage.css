@@ -1,0 +1,17 @@
+.sink-page { max-width: 980px; margin: 0 auto; padding: 28px 24px 80px; }
+.sink-page h1 { font-size: 22px; margin-bottom: 4px; }
+.sink-intro { color: var(--color-text-muted); margin-top: 0; margin-bottom: 28px; font-size: 13.5px; }
+.sink-section { margin-bottom: 34px; }
+.sink-section h2 { font-size: 15px; margin: 0 0 4px; }
+.sink-section__desc { color: var(--color-text-muted); font-size: 12.5px; margin: 0 0 16px; }
+.sink-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+.sink-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.state-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-faint); margin-bottom: 6px; }
+
+/* The Iconography section's hoverable/tabbable box around each icon, so
+   every animation in shared/styles/global-icon-triggers.css can be tried
+   in isolation. */
+.icon-preview {
+  display: inline-flex; padding: 8px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); color: var(--color-text-muted); cursor: default;
+}

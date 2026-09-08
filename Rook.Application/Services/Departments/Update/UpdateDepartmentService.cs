@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Rook.Domain.Exceptions.Common;
 using Rook.Infrastructure.Data;
+using Rook.Infrastructure.Hubs;
 
 namespace Rook.Application.Services.Departments.Update;
 
 public class UpdateDepartmentService(
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
     public async Task<UpdateDepartmentResponse> Update(UpdateDepartmentCommand request)
@@ -34,6 +37,8 @@ public class UpdateDepartmentService(
         department.NormalizedName = request.Name.ToUpperInvariant();
 
         await dbContext.SaveChangesAsync();
+
+        await hubContext.Clients.Group("DepartmentList").SendAsync("ListChanged");
 
         return new UpdateDepartmentResponse(department.Id, department.Name);
     }

@@ -25,4 +25,16 @@ public class LiveHub : Hub
     {
         await Clients.OthersInGroup(groupName).SendAsync("UserStoppedEditing", username);
     }
+
+    public async Task NotifyRowSelected(string groupName, string rowId, string username) =>
+        await Clients.OthersInGroup(groupName).SendAsync("RowSelected", rowId, username);
+
+    public async Task NotifyRowDeselected(string groupName, string rowId, string username) =>
+        await Clients.OthersInGroup(groupName).SendAsync("RowDeselected", rowId, username);
+
+    public async Task NotifyRowEditing(string groupName, string rowId, string username) =>
+        await Clients.OthersInGroup(groupName).SendAsync("RowEditing", rowId, username);
+
+    public async Task NotifyRowStoppedEditing(string groupName, string rowId, string username) =>
+        await Clients.OthersInGroup(groupName).SendAsync("RowStoppedEditing", rowId, username);
 }

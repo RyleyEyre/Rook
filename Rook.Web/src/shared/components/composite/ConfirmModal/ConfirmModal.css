@@ -1,0 +1,13 @@
+/* ConfirmModal.jsx — the danger-notice/type-to-confirm body rendered
+   inside Modal.jsx's shell for both the single-record and bulk delete
+   flows. */
+
+.danger-notice {
+  display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--radius-md);
+  background: rgba(var(--color-danger-rgb), 0.08); border: 1px solid rgba(var(--color-danger-rgb), 0.3);
+  color: var(--color-text); margin-bottom: 18px; font-size: 13.5px; line-height: 1.5;
+}
+.danger-notice svg { color: var(--color-danger); flex: none; margin-top: 2px; }
+.danger-notice p { margin: 0; }
+.confirm-type-input { margin: 8px 0 20px; }
+.confirm-delete-actions { display: flex; justify-content: flex-end; gap: 10px; }

@@ -1,0 +1,93 @@
+/* Accent color, switchable independently of light/dark mode (Settings >
+   Appearance). All 8 use the same shade-weight recipe so they read as one
+   designed family rather than a grab-bag, and are spaced ~40-50° apart
+   around the hue wheel so no two feel redundant. None sit close to
+   --color-danger's red (~355°), so an accent-colored button never reads as
+   a warning by accident.
+
+   Dark mode gets a brighter/more saturated variant of each — plain
+   legibility against a near-black background, not a glow effect (this
+   theme doesn't have one). Slate is left alone in dark mode; it's the
+   deliberately neutral, low-key option. */
+
+/* Fallback default (amber) — applies whenever `data-accent` isn't set on
+   <html> at all, so --color-accent is never left undefined. The
+   attribute-scoped rules below always win once a specific accent is
+   chosen: an attribute selector is strictly more specific than a bare
+   `:root`, regardless of source order, so this block only ever supplies
+   what nothing more specific already provided. */
+:root {
+  --color-accent: #d68f0e;
+  --color-accent-hover: #b87700;
+  --color-accent-contrast: #1a1200;
+  --color-accent-rgb: 214, 143, 14;
+}
+:root[data-mode='dark'] {
+  --color-accent: #ffb020;
+  --color-accent-contrast: #1a1200;
+  --color-accent-rgb: 255, 176, 32;
+}
+
+:root[data-accent='amber'] {
+  --color-accent: #d68f0e;
+  --color-accent-hover: #b87700;
+  --color-accent-contrast: #1a1200;
+  --color-accent-rgb: 214, 143, 14;
+}
+
+:root[data-accent='terracotta'] {
+  --color-accent: #c2410c;
+  --color-accent-hover: #9a3412;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 194, 65, 12;
+}
+
+:root[data-accent='forest'] {
+  --color-accent: #15803d;
+  --color-accent-hover: #166534;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 21, 128, 61;
+}
+
+:root[data-accent='teal'] {
+  --color-accent: #0d9488;
+  --color-accent-hover: #0f766e;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 13, 148, 136;
+}
+
+:root[data-accent='sky'] {
+  --color-accent: #0284c7;
+  --color-accent-hover: #0369a1;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 2, 132, 199;
+}
+
+:root[data-accent='indigo'] {
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 79, 70, 229;
+}
+
+:root[data-accent='pink'] {
+  --color-accent: #db2777;
+  --color-accent-hover: #be185d;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 219, 39, 119;
+}
+
+:root[data-accent='slate'] {
+  --color-accent: #475569;
+  --color-accent-hover: #334155;
+  --color-accent-contrast: #ffffff;
+  --color-accent-rgb: 71, 85, 105;
+}
+
+:root[data-mode='dark'][data-accent='amber'] { --color-accent: #ffb020; --color-accent-contrast: #1a1200; --color-accent-rgb: 255, 176, 32; }
+:root[data-mode='dark'][data-accent='terracotta'] { --color-accent: #ff7a45; --color-accent-rgb: 255, 122, 69; }
+:root[data-mode='dark'][data-accent='forest'] { --color-accent: #34d399; --color-accent-rgb: 52, 211, 153; }
+:root[data-mode='dark'][data-accent='teal'] { --color-accent: #2dd4bf; --color-accent-rgb: 45, 212, 191; }
+:root[data-mode='dark'][data-accent='sky'] { --color-accent: #38bdf8; --color-accent-rgb: 56, 189, 248; }
+:root[data-mode='dark'][data-accent='indigo'] { --color-accent: #818cf8; --color-accent-rgb: 129, 140, 248; }
+:root[data-mode='dark'][data-accent='pink'] { --color-accent: #f472b6; --color-accent-rgb: 244, 114, 182; }

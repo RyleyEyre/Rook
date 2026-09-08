@@ -1,0 +1,39 @@
+/* HoldToConfirmButton.jsx — HoldToConfirmButton (full-width) and
+   HoldToConfirmIconButton (compact), same press-and-hold fill mechanic. */
+
+.hold-btn {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 18px; min-width: 190px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-danger); background: transparent; color: var(--color-danger);
+  font-weight: 600; font-size: 14px; cursor: pointer; user-select: none; touch-action: none;
+  transition: color var(--transition-fast);
+}
+.hold-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.hold-btn__fill {
+  position: absolute; inset: 0; width: 0; background: var(--color-danger); z-index: -1;
+}
+.hold-btn.is-holding .hold-btn__fill { transition: none; }
+.hold-btn:not(.is-holding) .hold-btn__fill { transition: width 180ms ease-out; }
+.hold-btn.is-holding, .hold-btn.is-done { color: var(--color-danger-contrast); }
+.hold-btn.is-done .hold-btn__fill { width: 100% !important; background: var(--color-success); }
+.hold-btn.is-done { border-color: var(--color-success); color: var(--color-danger-contrast); }
+.hold-btn__label { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+
+/* Compact icon-only version of the same hold-and-fill mechanic, sized to
+   match .icon-btn for use in table row actions / toolbars. */
+.hold-icon-btn {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
+  border: 1px solid transparent; background: transparent; color: var(--color-danger);
+  cursor: pointer; user-select: none; touch-action: none;
+  transition: color var(--transition-fast);
+}
+.hold-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.hold-icon-btn__fill { position: absolute; inset: 0; width: 0; background: var(--color-danger); z-index: -1; }
+.hold-icon-btn.is-holding .hold-icon-btn__fill { transition: none; }
+.hold-icon-btn:not(.is-holding) .hold-icon-btn__fill { transition: width 180ms ease-out; }
+.hold-icon-btn.is-holding, .hold-icon-btn.is-done { color: var(--color-danger-contrast); }
+.hold-icon-btn.is-done .hold-icon-btn__fill { width: 100% !important; background: var(--color-success); }
+.hold-icon-btn__icon { position: relative; }

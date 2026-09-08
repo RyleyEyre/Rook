@@ -1,0 +1,6 @@
+/* Avatar.jsx */
+
+.avatar {
+  border-radius: 50%; background: rgba(var(--color-accent-rgb), 0.18); color: var(--color-accent);
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none;
+}

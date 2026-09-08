@@ -1,0 +1,22 @@
+/* Header.jsx — the top-bar nav layout. Shares its nav-link/dropdown look
+   with Sidebar.jsx via NavLink.css. */
+
+.top-nav {
+  display: flex; align-items: center; gap: 4px; padding: 10px 24px;
+  background: var(--color-panel); border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.top-nav__brand { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-right: 20px; color: var(--color-text); }
+.top-nav__links { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.top-nav__spacer { flex: 1; }
+.top-nav__user {
+  display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer;
+  padding: 5px 10px 5px 5px; border-radius: var(--radius-full); color: var(--color-text);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+.top-nav__user:hover { background: var(--color-panel-2); }
+.top-nav__user-name { font-size: 13px; font-weight: 600; }
