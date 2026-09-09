@@ -28,7 +28,7 @@ function App() {
         <Routes>
             <Route path="/login" element={<Suspense fallback={<PageFallback />}><LoginPage /></Suspense>} />
 
-            <Route element={<AppShell layout="top" />}>
+            <Route element={<AppShell />}>
                 {appRoutes.map(({ path, Component }) => (
                     <Route key={path} path={path} element={<Suspense fallback={<PageFallback />}><Component /></Suspense>} />
                 ))}

@@ -34,12 +34,14 @@ const paths = {
   eyeOff: 'M3 3l18 18M10.6 10.6a3.5 3.5 0 0 0 4.8 4.8M6.5 6.7C4 8.3 2 12 2 12s3.5 7 10 7c1.6 0 3-.3 4.2-.9M9.9 5.2C10.6 5.1 11.3 5 12 5c6.5 0 10 7 10 7-.4.7-1.1 1.7-2 2.7',
   filter: 'M4 5h16l-6 8v6l-4 2v-8L4 5Z',
   dots: 'M5 12h.01M12 12h.01M19 12h.01',
+  dotsVertical: 'M12 5h.01M12 12h.01M12 19h.01',
   bell: 'M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Zm4 9a2 2 0 0 0 4 0',
   lock: 'M6 11V8a6 6 0 1 1 12 0v3m-13 0h14v9H5v-9Z',
   refresh: 'M4 4v6h6M20 20v-6h-6M4.5 15a8 8 0 0 0 14.8 2.5M19.5 9A8 8 0 0 0 4.7 6.5',
   grid: 'M3 3h8v8H3ZM14 3h8v8h-8ZM3 14h8v8H3ZM14 14h8v8h-8Z',
   folder: 'M3 6a1 1 0 0 1 1-1h5.5l1.5 2H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6Z',
   clock: 'M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0ZM12 7v5l3.5 2',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
 }
 
 // The trash can is split into a lid (rim + handle) and a body so the two
@@ -74,6 +76,7 @@ const hoverAnimations = {
   lock: 'jiggle',
   filter: 'tilt',
   dots: 'bounce',
+  dotsVertical: 'bounce',
   eye: 'blink',
   eyeOff: 'blink',
   sun: 'spin-slow',
@@ -133,7 +136,7 @@ export function Icon({ name, size = 18, className, ...rest }) {
   const d = paths[name]
   if (!d) return null
   const isStroke = ['sortUp', 'sortDown', 'sortBoth', 'check', 'x', 'chevronDown', 'chevronRight',
-    'warning', 'info', 'spinner', 'plus', 'eye', 'eyeOff', 'filter', 'dots', 'bell', 'lock', 'refresh', 'clock'].includes(name)
+    'warning', 'info', 'spinner', 'plus', 'eye', 'eyeOff', 'filter', 'dots', 'dotsVertical', 'bell', 'lock', 'refresh', 'clock', 'logout'].includes(name)
   const anim = hoverAnimations[name]
   const classes = ['rk-icon', `rk-icon--${name}`, anim && `rk-icon-anim--${anim}`, className].filter(Boolean).join(' ')
   return (

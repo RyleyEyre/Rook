@@ -134,8 +134,18 @@ export function DataTable({
   function buildRowMenuItems(row) {
     const items = []
     if (showEdit) items.push({ key: 'edit', label: 'Edit', icon: 'edit', onClick: () => onEdit?.(row) })
-    items.push(...rowActions(row))
+
+    const extra = rowActions(row)
+    if (extra.length > 0) {
+      // Dividers on both sides so custom actions read as their own group,
+      // separate from Edit above and Delete below — not just more items
+      // in the same undifferentiated list.
+      if (items.length > 0) items.push({ key: 'divider-before-extra', type: 'divider' })
+      items.push(...extra)
+    }
+
     if (showDelete) {
+      if (items.length > 0) items.push({ key: 'divider-before-delete', type: 'divider' })
       if (menuDeleteMode === 'hold') {
         items.push({
           key: 'delete',
@@ -157,33 +167,31 @@ export function DataTable({
     <div className="data-table-block">
       {showTopBar && (
         <div className="data-table-toolbar">
-          {actionsPosition === 'top' ? (
-            <div className="data-table-toolbar__left">
-              {showSelectionCount && (
+          <div className="data-table-toolbar__left">
+            {showCreate && (
+              <Button size="md" icon="plus" onClick={() => onCreate?.()}>{createLabel}</Button>
+            )}
+            {actionsPosition === 'top' && showSelectionCount && (
               <span className="data-table-toolbar__count">
                 {selectedRows.length} selected
               </span>
-              )}
-              {showDeselectAll && (
-                <button
-                  type="button"
-                  className="data-table-toolbar__deselect"
-                  disabled={selectedRows.length === 0}
-                  onClick={() => setSelected(new Set())}
-                >
-                  Deselect all
-                </button>
-              )}
-            </div>
-          ) : <div className="data-table-toolbar__left" />}
-          <div className="data-table-toolbar__actions">
-            {showCreate && (
-              <Button size="sm" icon="plus" onClick={() => onCreate?.()}>{createLabel}</Button>
             )}
+            {actionsPosition === 'top' && showDeselectAll && (
+              <button
+                type="button"
+                className="data-table-toolbar__deselect"
+                disabled={selectedRows.length === 0}
+                onClick={() => setSelected(new Set())}
+              >
+                Deselect all
+              </button>
+            )}
+          </div>
+          <div className="data-table-toolbar__actions">
             {actionsPosition === 'top' && showEdit && (
               <Button
                 variant="secondary"
-                size="sm"
+                size="md"
                 icon="edit"
                 disabled={selectedRows.length !== 1}
                 onClick={() => onEdit?.(selectedRows[0])}
@@ -204,7 +212,7 @@ export function DataTable({
               ) : (
                 <Button
                   variant="danger"
-                  size="sm"
+                  size="md"
                   icon="trash"
                   disabled={selectedRows.length === 0}
                   onClick={requestDelete}
@@ -240,6 +248,7 @@ export function DataTable({
                     )}
                   </th>
                 )}
+                {showMenuCol && <th className="data-table__menu-col" />}
                 {columns.map((col) => (
                   <th
                     key={col.key}
@@ -256,7 +265,6 @@ export function DataTable({
                   </th>
                 ))}
                 {showActionsCol && <th style={{ textAlign: 'right' }} />}
-                {showMenuCol && <th style={{ textAlign: 'right' }} />}
               </tr>
             </thead>
             <tbody>
@@ -281,6 +289,13 @@ export function DataTable({
                         )}
                       </td>
                     )}
+                    {showMenuCol && (
+                      <td className="data-table__menu-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="cell-actions">
+                          <Menu items={buildRowMenuItems(row)} label="Row actions" align="start" />
+                        </div>
+                      </td>
+                    )}
                     {columns.map((col) => (
                       <td key={col.key} style={col.align ? { textAlign: col.align } : undefined}>
                         {col.render ? col.render(row) : row[col.key]}
@@ -302,13 +317,6 @@ export function DataTable({
                               <IconButton icon="trash" label="Delete" variant="danger" onClick={() => handleDelete([row])} />
                             )
                           )}
-                        </div>
-                      </td>
-                    )}
-                    {showMenuCol && (
-                      <td onClick={(e) => e.stopPropagation()}>
-                        <div className="cell-actions">
-                          <Menu items={buildRowMenuItems(row)} label="Row actions" />
                         </div>
                       </td>
                     )}

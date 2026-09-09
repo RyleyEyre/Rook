@@ -1,0 +1,11 @@
+.top-bar {
+  display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+  background: var(--color-panel); border-bottom: 1px solid var(--color-border);
+  position: sticky; top: 0; z-index: 40;
+}
+.top-bar__spacer { flex: 1; }
+.top-bar__profile {
+  display: flex; align-items: center; border-radius: var(--radius-full);
+  transition: opacity var(--transition-fast);
+}
+.top-bar__profile:hover { opacity: 0.85; }

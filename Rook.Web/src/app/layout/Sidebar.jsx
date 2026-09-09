@@ -1,19 +1,35 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@shared/utils/cn.js'
 import { RookIcon, Icon } from '@shared/components/primitives/Icon'
 import { Avatar } from '@shared/components/primitives/Avatar'
 import { useAuth } from '@app/providers/AuthProvider.jsx'
-import { NAV_ITEMS, useOpenMenu, isItemActive } from './nav.js'
+import { NAV_ITEMS, isItemActive } from './nav.js'
 import './NavLink.css'
 import './Sidebar.css'
 
-export function Sidebar() {
+// Just a local UI preference for now — the plan is for this to move onto
+// the user's profile (see UpdateEmployeeRequest) once there's a field for
+// it there. localStorage is a fine stand-in in the meantime since it
+// already gives us "remembered across sessions" for free.
+const COLLAPSE_STORAGE_KEY = 'rook:sidebar-collapsed'
+
+// `openId`/`toggle`/`close` come from AppShell now rather than a local
+// useOpenMenu() call here — GlobalSearch (over in TopBar, a sibling of
+// this component) needs to be able to close whatever submenu is open too,
+// so the "which submenu is open" state has to live somewhere both can
+// reach rather than be private to Sidebar.
+export function Sidebar({ openId, toggle, close }) {
   const { pathname } = useLocation()
   const { username, role } = useAuth()
-  const { openId, toggle, close } = useOpenMenu()
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1')
+
+  useEffect(() => {
+    localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0')
+  }, [collapsed])
 
   return (
-    <aside className="side-nav">
+    <aside className={cn('side-nav', collapsed && 'side-nav--collapsed')}>
       <div className="side-nav__brand">
         <RookIcon size={22} />
         <span>Rook</span>
@@ -70,6 +86,17 @@ export function Sidebar() {
           <span className="side-nav__user-role">{role}</span>
         </div>
       </Link>
+
+      <button
+        type="button"
+        className="side-nav__collapse-toggle"
+        onClick={() => setCollapsed((c) => !c)}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        <Icon name="chevronRight" size={15} className={cn('side-nav__collapse-icon', !collapsed && 'is-flipped')} />
+        <span className="side-nav-label">Collapse</span>
+      </button>
     </aside>
   )
 }

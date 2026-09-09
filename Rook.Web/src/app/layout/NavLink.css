@@ -33,6 +33,7 @@
   animation: modal-in 130ms ease;
 }
 .nav-dropdown__panel--below { top: calc(100% + 6px); left: 0; }
+.nav-dropdown__panel--below-end { top: calc(100% + 6px); right: 0; }
 .nav-dropdown__panel--right { top: 0; left: calc(100% + 8px); }
 
 .nav-dropdown__item {

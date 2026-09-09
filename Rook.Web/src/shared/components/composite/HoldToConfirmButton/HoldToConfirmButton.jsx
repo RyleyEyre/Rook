@@ -78,20 +78,20 @@ function useHoldProgress(holdMs, onConfirm, disabled) {
 }
 
 export function HoldToConfirmButton({
-  label, holdingLabel = 'Keep holding…', doneLabel = 'Removed', onConfirm, disabled, holdMs = 2000,
+  label, holdingLabel = 'Keep holding…', doneLabel = 'Removed', onConfirm, disabled, holdMs = 2000, size = 'md',
 }) {
   const { progress, state, handlers } = useHoldProgress(holdMs, onConfirm, disabled)
 
   return (
     <button
       type="button"
-      className={cn('hold-btn', state === 'holding' && 'is-holding', state === 'done' && 'is-done')}
+      className={cn('hold-btn', size === 'sm' && 'hold-btn--sm', state === 'holding' && 'is-holding', state === 'done' && 'is-done')}
       disabled={disabled}
       {...handlers}
     >
       <span className="hold-btn__fill" style={{ width: `${progress}%` }} />
       <span className="hold-btn__label">
-        {state === 'done' ? <Icon name="check" size={16} /> : <Icon name="trash" size={16} />}
+        {state === 'done' ? <Icon name="check" size={size === 'sm' ? 14 : 16} /> : <Icon name="trash" size={size === 'sm' ? 14 : 16} />}
         {state === 'done' ? doneLabel : state === 'holding' ? holdingLabel : label}
       </span>
     </button>

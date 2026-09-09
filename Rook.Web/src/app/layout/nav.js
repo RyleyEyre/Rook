@@ -43,3 +43,22 @@ export function isItemActive(item, pathname) {
     ? item.children.some((c) => pathname.startsWith(c.to))
     : pathname.startsWith(item.to)
 }
+
+// Flattens NAV_ITEMS into a flat list of actually-navigable pages — a
+// parent with children (e.g. "Employees") isn't itself a destination, so
+// its children are what get listed, each tagged with the parent's label
+// as `group` for context (e.g. Departments shows as "Employees" group).
+// This is what GlobalSearch matches against.
+export function flattenNavItems(items) {
+  const flat = []
+  for (const item of items) {
+    if (item.children) {
+      for (const child of item.children) {
+        flat.push({ id: child.id, label: child.label, icon: child.icon, to: child.to, group: item.label })
+      }
+    } else {
+      flat.push({ id: item.id, label: item.label, icon: item.icon, to: item.to })
+    }
+  }
+  return flat
+}

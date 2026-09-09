@@ -20,6 +20,8 @@ import './Menu.css'
  * everything else instead.
  *
  * `items`: [{ key, label, icon?, onClick, variant?: 'danger', disabled? }]
+ * A `{ key, type: 'divider' }` entry renders a thin separator line instead
+ * of a button — used to visually group related items apart from the rest.
  * An item can also opt into `type: 'hold'` instead of a plain click —
  * renders as a press-and-hold fill button right inside the panel (needs
  * `holdMs`, and `holdingLabel`/`doneLabel` for the mid-hold/done text) so
@@ -31,7 +33,7 @@ import './Menu.css'
  * edge, opens leftward) is the sensible default for a rightmost table
  * column so the panel doesn't run off the viewport edge.
  */
-export function Menu({ items, label = 'Actions', align = 'end', triggerIcon = 'dots', triggerSize = 20 }) {
+export function Menu({ items, label = 'Actions', align = 'end', triggerIcon = 'dotsVertical', triggerSize = 24 }) {
   const [open, setOpen] = useState(false)
   const [coords, setCoords] = useState(null)
   const anchorRef = useRef(null)
@@ -85,7 +87,9 @@ export function Menu({ items, label = 'Actions', align = 'end', triggerIcon = 'd
           <div className="menu-scrim" onClick={closeMenu} />
           <div className="menu__panel" style={coords} role="menu">
             {items.map((item) => (
-              item.type === 'hold' ? (
+              item.type === 'divider' ? (
+                <div key={item.key} className="menu__divider" role="separator" />
+              ) : item.type === 'hold' ? (
                 <div key={item.key} className="menu__item-hold">
                   <HoldToConfirmButton
                     label={item.label}

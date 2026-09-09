@@ -30,5 +30,7 @@
 
 .menu__empty { padding: 8px 10px; font-size: 12.5px; color: var(--color-text-faint); }
 
+.menu__divider { height: 1px; margin: 4px 4px; background: var(--color-border); flex: none; }
+
 .menu__item-hold { padding: 2px; }
 .menu__item-hold .hold-btn { width: 100%; min-width: 0; padding: 8px 10px; font-size: 13px; }

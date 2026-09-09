@@ -20,6 +20,14 @@
 .hold-btn.is-done { border-color: var(--color-success); color: var(--color-danger-contrast); }
 .hold-btn__label { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 
+/* Matches .btn--sm's metrics exactly (padding/font-size) so this sits at
+   the same height as the plain Button-based Edit/Create controls next to
+   it in a toolbar — the default size above is deliberately taller/more
+   deliberate-feeling for contexts like ConfirmModal or a menu item where
+   there's nothing it needs to line up against. */
+.hold-btn--sm { padding: 6px 12px; min-width: 0; font-size: 12.5px; gap: 6px; }
+.hold-btn--sm .hold-btn__label { gap: 6px; }
+
 /* Compact icon-only version of the same hold-and-fill mechanic, sized to
    match .icon-btn for use in table row actions / toolbars. */
 .hold-icon-btn {

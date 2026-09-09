@@ -38,6 +38,7 @@
 .data-table .cell-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .data-table .cell-name-wrap { display: flex; align-items: center; gap: 10px; }
 .data-table__select-col { width: 40px; padding-left: 16px !important; padding-right: 0 !important; }
+.data-table__menu-col { width: 44px; padding-left: 4px !important; padding-right: 4px !important; }
 .table-radio { display: inline-flex; }
 
 .table-empty { padding: 60px 20px; text-align: center; color: var(--color-text-muted); }

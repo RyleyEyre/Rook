@@ -215,6 +215,7 @@ export function DepartmentsPage() {
             actionsPosition="top"
             selectionMode="single"
             showCreate
+            showActionsMenu={true}
             showDeselectAll={false}
             showSelectionCount={false}
             showSelected={false}
