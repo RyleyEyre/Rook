@@ -11,9 +11,37 @@ import { TextInput } from '@shared/components/composite/Field'
 import { Button } from '@shared/components/composite/Button'
 import { Banner } from '@shared/components/composite/Banner'
 import { Skeleton } from '@shared/components/primitives/Skeleton'
+import { Tooltip } from '@shared/components/primitives/Tooltip'
+import { dateSortValue, formatDate, formatDateTime, formatRelativeDate } from '@shared/utils/formatDate.js'
 
 const columns = [
   { key: 'name', label: 'Name', sortable: true },
+  {
+    key: 'employeeCount',
+    label: 'Employees',
+    sortable: true,
+    align: 'right',
+    render: (row) => row.employeeCount ?? 0,
+  },
+  {
+    key: 'createdAt',
+    label: 'Created',
+    sortable: true,
+    sortValue: (row) => dateSortValue(row.createdAt),
+    render: (row) => formatDate(row.createdAt) ?? '—',
+  },
+  {
+    key: 'lastEditedAt',
+    label: 'Last Edited',
+    sortable: true,
+    sortValue: (row) => dateSortValue(row.lastEditedAt),
+    render: (row) => {
+      const relative = formatRelativeDate(row.lastEditedAt)
+      return relative
+        ? <Tooltip label={formatDateTime(row.lastEditedAt)}>{relative}</Tooltip>
+        : '—'
+    },
+  },
 ]
 
 // Keeps the toast readable even in the (currently unreachable, since this
@@ -215,7 +243,6 @@ export function DepartmentsPage() {
             actionsPosition="top"
             selectionMode="single"
             showCreate
-            showActionsMenu={true}
             showDeselectAll={false}
             showSelectionCount={false}
             showSelected={false}

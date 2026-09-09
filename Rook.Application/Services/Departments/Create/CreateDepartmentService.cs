@@ -12,7 +12,7 @@ public class CreateDepartmentService(
     IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<CreateDepartmentResponse> Create(CreateDepartmentCommand request, string? connectionId)
+    public async Task<CreateDepartmentResponse> Create(CreateDepartmentCommand request, string? connectionId, string userId)
     {
         var existingDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.NormalizedName == request.Name.ToUpperInvariant());
 
@@ -26,7 +26,10 @@ public class CreateDepartmentService(
         var department = new Department
         {
             Name = request.Name,
-            NormalizedName = request.Name.ToUpperInvariant()
+            NormalizedName = request.Name.ToUpperInvariant(),
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            LastEditedBy = userId
         };
 
         dbContext.Departments.Add(department);
@@ -35,6 +38,6 @@ public class CreateDepartmentService(
         var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
         await hubContext.Clients.GroupExcept("DepartmentList", excludedConnections).SendAsync("DepartmentListChanged");
         
-        return new CreateDepartmentResponse(department.Id, department.Name);
+        return new CreateDepartmentResponse(department.Id, department.Name, department.CreatedAt);
     }
 }

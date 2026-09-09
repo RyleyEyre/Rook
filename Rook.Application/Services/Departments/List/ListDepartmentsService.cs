@@ -9,11 +9,16 @@ public class ListDepartmentsService(
 {
     public async Task<List<DepartmentSummary>> List()
     {
-        var departments = await dbContext.Departments.ToListAsync();
+        var departments = await dbContext.Departments
+            .Select(d => new DepartmentSummary(
+                d.Id,
+                d.Name,
+                d.CreatedAt,
+                d.LastEditedAt,
+                d.Employees.Count
+            ))
+            .ToListAsync();
 
-        return departments.Select(d => new DepartmentSummary(
-            Id: d.Id,
-            Name: d.Name
-        )).ToList();
+        return departments;
     }
 }

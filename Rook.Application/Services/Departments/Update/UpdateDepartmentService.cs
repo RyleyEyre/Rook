@@ -11,7 +11,7 @@ public class UpdateDepartmentService(
     IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<UpdateDepartmentResponse> Update(UpdateDepartmentCommand request, string? connectionId)
+    public async Task<UpdateDepartmentResponse> Update(UpdateDepartmentCommand request, string? connectionId, string userId)
     {
         var department = await dbContext.Departments.FindAsync(request.Id);
 
@@ -33,15 +33,19 @@ public class UpdateDepartmentService(
             throw new ConflictException("A conflict occurred.", [error]);
         }
 
+
         department.Name = request.Name;
         department.NormalizedName = request.Name.ToUpperInvariant();
+        department.LastEditedAt = DateTime.UtcNow;
+        department.LastEditedBy = userId;
+
 
         await dbContext.SaveChangesAsync();
 
         var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
         await hubContext.Clients.GroupExcept("DepartmentList", excludedConnections).SendAsync("DepartmentListChanged");
 
-        return new UpdateDepartmentResponse(department.Id, department.Name);
+        return new UpdateDepartmentResponse(department.Id, department.Name, department.LastEditedAt, department.CreatedAt);
     }
 
 

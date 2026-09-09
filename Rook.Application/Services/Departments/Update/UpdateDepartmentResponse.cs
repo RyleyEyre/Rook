@@ -1,3 +1,8 @@
 namespace Rook.Application.Services.Departments.Update;
 
-public record UpdateDepartmentResponse(int Id, string Name);
+public record UpdateDepartmentResponse(
+    int Id,
+    string Name,
+    DateTime? LastEditedAt,
+    DateTime CreatedAt
+);

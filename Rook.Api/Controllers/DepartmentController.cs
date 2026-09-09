@@ -21,8 +21,9 @@ public class DepartmentController(
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDepartmentCommand request)
     {
+        var userId = User.FindFirst("sub")?.Value!;
         var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
-        var result = await createDepartmentService.Create(request, connectionId);
+        var result = await createDepartmentService.Create(request, connectionId, userId);
         return Ok(
             new
             {
@@ -55,13 +56,14 @@ public class DepartmentController(
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateDepartmentRequest request)
     {
+        var userId = User.FindFirst("sub")?.Value!;
         var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
         var command = new UpdateDepartmentCommand(
             Id: id,
             Name: request.Name
         );
 
-        var result = await updateDepartmentService.Update(command, connectionId);
+        var result = await updateDepartmentService.Update(command, connectionId, userId);
         return Ok(
             new
             {
