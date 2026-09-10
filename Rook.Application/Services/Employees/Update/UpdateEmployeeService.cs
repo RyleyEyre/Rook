@@ -4,16 +4,19 @@ using FluentValidation;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Domain.Exceptions.Common;
+using Microsoft.AspNetCore.SignalR;
+using Rook.Infrastructure.Hubs;
 
 namespace Rook.Application.Services.Employees.Update;
 
 public class UpdateEmployeeService(
     UserManager<ApplicationUser> userManager,
     IValidator<UpdateEmployeeCommand> validator,
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<UpdateEmployeeResponse> Update(UpdateEmployeeCommand request)
+    public async Task<UpdateEmployeeResponse> Update(UpdateEmployeeCommand request, string? connectionId, string userId)
     {
         await validator.ValidateAndThrowAsync(request);
 
@@ -116,9 +119,14 @@ public class UpdateEmployeeService(
         employee.VoiceConsoleId = request.VoiceConsoleId;
         employee.TerminationDate = request.TerminationDate;
         employee.StartDate = request.StartDate;
+        employee.LastEditedAt = DateTime.UtcNow;
+        employee.LastEditedBy = userId;
 
         await dbContext.SaveChangesAsync();
 
-        return new UpdateEmployeeResponse(request.UserId, request.Username, request.Email);
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("EmployeeList", excludedConnections).SendAsync("EmployeeListChanged");
+
+        return new UpdateEmployeeResponse(request.UserId, request.Username, request.Email, employee.LastEditedAt, employee.CreatedAt);
     }
 }

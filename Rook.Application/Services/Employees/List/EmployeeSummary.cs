@@ -8,5 +8,7 @@ public record EmployeeSummary(
     string? ShiftPatternName,
     DateTime StartDate,
     DateTime? TerminationDate,
-    bool IsProfileComplete
+    bool IsProfileComplete,
+    DateTime CreatedAt,
+    DateTime? LastEditedAt
 );

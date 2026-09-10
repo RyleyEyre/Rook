@@ -1,3 +1,3 @@
 namespace Rook.Application.Services.Employees.Update;
 
-public record UpdateEmployeeResponse(string Id, string Username, string Email);
+public record UpdateEmployeeResponse(string Id, string Username, string Email, DateTime? LastEditedAt, DateTime CreatedAt);

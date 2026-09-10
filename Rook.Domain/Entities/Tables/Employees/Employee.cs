@@ -26,6 +26,10 @@ public class Employee
 
     public DateTime StartDate { get; set; }
     public DateTime? TerminationDate { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public required string CreatedBy {get; set; }
+    public DateTime? LastEditedAt {get; set ;}
+    public string? LastEditedBy { get; set; }
 
     // Computed rather than stored, so it can never drift out of sync with
     // the actual data — always reflects whatever's currently filled in.

@@ -6,16 +6,19 @@ using Rook.Infrastructure.Identity;
 using Rook.Domain.Exceptions.Common;
 using Rook.Domain.Entities.Tables.Employees;
 using Rook.Infrastructure.Authentication;
+using Microsoft.AspNetCore.SignalR;
+using Rook.Infrastructure.Hubs;
 
 namespace Rook.Application.Services.Employees.Create;
 
 public class CreateEmployeeService(
     UserManager<ApplicationUser> userManager,
     IValidator<CreateEmployeeCommand> validator,
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<CreateEmployeeResponse> Create(CreateEmployeeCommand request)
+    public async Task<CreateEmployeeResponse> Create(CreateEmployeeCommand request, string? connectionId, string userId)
     {
         await validator.ValidateAndThrowAsync(request);
 
@@ -104,11 +107,17 @@ public class CreateEmployeeService(
             WCSId = request.WCSId,
             VoiceConsoleId = request.VoiceConsoleId,
             StartDate = request.StartDate,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            LastEditedBy = userId,
         };
 
         dbContext.Employees.Add(employee);
         await dbContext.SaveChangesAsync();
 
-        return new CreateEmployeeResponse(user.Id, user.UserName!, user.Email!);
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("EmployeeList", excludedConnections).SendAsync("EmployeeListChanged");
+
+        return new CreateEmployeeResponse(user.Id, user.UserName!, user.Email!, employee.CreatedAt);
     }
 }

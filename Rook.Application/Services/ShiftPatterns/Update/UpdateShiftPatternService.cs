@@ -13,7 +13,7 @@ public class UpdateShiftPatternService(
     IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<UpdateShiftPatternResponse> Update(UpdateShiftPatternCommand request, string? connectionId)
+    public async Task<UpdateShiftPatternResponse> Update(UpdateShiftPatternCommand request, string? connectionId, string userId)
     {
         var shiftPattern = await dbContext.ShiftPatterns
             .Include(sp => sp.Days)
@@ -49,6 +49,8 @@ public class UpdateShiftPatternService(
 
         shiftPattern.Name = request.Name;
         shiftPattern.NormalizedName = request.Name.ToUpperInvariant();
+        shiftPattern.LastEditedAt = DateTime.UtcNow;
+        shiftPattern.LastEditedBy = userId;
 
         dbContext.ShiftPatternDays.RemoveRange(shiftPattern.Days);
 
@@ -71,6 +73,8 @@ public class UpdateShiftPatternService(
         return new UpdateShiftPatternResponse(
             Id: shiftPattern.Id,
             Name: shiftPattern.Name,
+            CreatedAt: shiftPattern.CreatedAt,
+            LastEditedAt: shiftPattern.LastEditedAt,
             Days: shiftPattern.Days.Select(d => new ShiftPatternDayResponse(
                 DayOfWeek: d.DayOfWeek,
                 StartTime: d.StartTime,

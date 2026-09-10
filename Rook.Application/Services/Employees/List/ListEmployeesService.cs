@@ -20,7 +20,9 @@ public class ListEmployeesService(ApplicationDbContext dbContext)
             ShiftPatternName: e.ShiftPattern?.Name,
             StartDate: e.StartDate,
             TerminationDate: e.TerminationDate,
-            IsProfileComplete: e.IsProfileComplete
+            IsProfileComplete: e.IsProfileComplete,
+            CreatedAt: e.CreatedAt,
+            LastEditedAt: e.LastEditedAt
         )).ToList();
     }
 }

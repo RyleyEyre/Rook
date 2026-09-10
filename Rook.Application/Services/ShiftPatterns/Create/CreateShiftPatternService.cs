@@ -13,7 +13,7 @@ public class CreateShiftPatternService(
     IHubContext<LiveHub> hubContext
 )
 {
-    public async Task<CreateShiftPatternResponse> Create(CreateShiftPatternCommand request, string? connectionId)
+    public async Task<CreateShiftPatternResponse> Create(CreateShiftPatternCommand request, string? connectionId, string userId)
     {
 
         var duplicateDays = request.Days
@@ -41,6 +41,9 @@ public class CreateShiftPatternService(
         {
             Name = request.Name,
             NormalizedName = request.Name.ToUpperInvariant(),
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            LastEditedBy = userId
         };
 
         foreach (var day in request.Days)
@@ -62,6 +65,7 @@ public class CreateShiftPatternService(
         return new CreateShiftPatternResponse(
             Id: shiftPattern.Id,
             Name: shiftPattern.Name,
+            CreatedAt: shiftPattern.CreatedAt,
             Days: shiftPattern.Days.Select(d => new ShiftPatternDayResponse(
                 DayOfWeek: d.DayOfWeek,
                 StartTime: d.StartTime,

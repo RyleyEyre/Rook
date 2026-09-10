@@ -3,15 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Rook.Infrastructure.Data;
 using Rook.Infrastructure.Identity;
 using Rook.Domain.Exceptions.Common;
+using Microsoft.AspNetCore.SignalR;
+using Rook.Infrastructure.Hubs;
 
 namespace Rook.Application.Services.Employees.Delete;
 
 public class DeleteEmployeeService(
     UserManager<ApplicationUser> userManager,
-    ApplicationDbContext dbContext
+    ApplicationDbContext dbContext,
+    IHubContext<LiveHub> hubContext
 )
 {
-    public async Task Delete(DeleteEmployeeCommand request)
+    public async Task Delete(DeleteEmployeeCommand request, string? connectionId, string userId)
     {
         var employee = await dbContext.Employees.FirstOrDefaultAsync(e => e.UserId == request.UserId);
         if (employee is null)
@@ -41,6 +44,8 @@ public class DeleteEmployeeService(
         // clean username and email permanently reserved by someone no longer employed.
 
         employee.TerminationDate = request.TerminationDate;
+        employee.LastEditedAt = DateTime.UtcNow;
+        employee.LastEditedBy = userId;  
 
         var terminatedUsername = $"{user.UserName}_terminated_{request.UserId}";
         var terminatedEmail = $"{user.Email}_terminated_{request.UserId}";
@@ -54,5 +59,8 @@ public class DeleteEmployeeService(
         await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
 
         await dbContext.SaveChangesAsync();
+
+        var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
+        await hubContext.Clients.GroupExcept("EmployeeList", excludedConnections).SendAsync("EmployeeListChanged");
     }
 }

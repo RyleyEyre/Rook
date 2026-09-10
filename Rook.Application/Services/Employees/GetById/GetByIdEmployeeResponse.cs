@@ -17,5 +17,9 @@ public record GetByIdEmployeeResponse(
     string? FusionId,
     string? WCSId,
     string? VoiceConsoleId,
-    DateTime? TerminationDate
+    DateTime? TerminationDate,
+    DateTime CreatedAt,
+    DateTime? LastEditedAt,
+    string CreatedBy,
+    string? LastEditedBy
 );

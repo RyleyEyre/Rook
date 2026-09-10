@@ -53,7 +53,11 @@ public class GetByIdEmployeeService(
             FusionId: employee.FusionId,
             WCSId: employee.WCSId,
             VoiceConsoleId: employee.VoiceConsoleId,
-            TerminationDate: employee.TerminationDate
+            TerminationDate: employee.TerminationDate,
+            CreatedAt: employee.CreatedAt,
+            LastEditedAt: employee.LastEditedAt,
+            CreatedBy: employee.CreatedBy,
+            LastEditedBy: employee.LastEditedBy
         );
     }
 }

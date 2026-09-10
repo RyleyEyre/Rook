@@ -24,7 +24,9 @@ public class EmployeeController(
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEmployeeCommand request)
     {
-        var result = await createEmployeeService.Create(request);
+        var userId = User.FindFirst("sub")?.Value!;
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+        var result = await createEmployeeService.Create(request, connectionId, userId);
         return Ok(
             new
             {
@@ -57,7 +59,9 @@ public class EmployeeController(
             TerminationDate: request.TerminationDate
         );
 
-        var result = await updateEmployeeService.Update(command);
+        var userId = User.FindFirst("sub")?.Value!;
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+        var result = await updateEmployeeService.Update(command, connectionId, userId);
         return Ok(
             new
             {
@@ -77,7 +81,9 @@ public class EmployeeController(
             UserId: id    
         );
 
-        await deleteEmployeeService.Delete(command);
+        var userId = User.FindFirst("sub")?.Value!;
+        var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
+        await deleteEmployeeService.Delete(command, connectionId, userId);
         return Ok(
             new
             {
