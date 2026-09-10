@@ -45,3 +45,11 @@
 .hold-icon-btn.is-holding, .hold-icon-btn.is-done { color: var(--color-danger-contrast); }
 .hold-icon-btn.is-done .hold-icon-btn__fill { width: 100% !important; background: var(--color-success); }
 .hold-icon-btn__icon { position: relative; }
+
+/* The default (non-"sm") hold-btn's 190px min-width is fine on a normal
+   desktop toolbar, but on a narrow viewport that's wide enough on its own
+   to push the toolbar past the page edge even with wrapping — let it
+   shrink here instead of holding a hard floor wider than some screens. */
+@media (max-width: 640px) {
+  .hold-btn { min-width: 0; padding: 10px 14px; }
+}

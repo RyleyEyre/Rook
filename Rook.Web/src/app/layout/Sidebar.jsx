@@ -10,8 +10,8 @@ import './Sidebar.css'
 
 // Just a local UI preference for now — the plan is for this to move onto
 // the user's profile (see UpdateEmployeeRequest) once there's a field for
-// it there. localStorage is a fine stand-in in the meantime since it
-// already gives us "remembered across sessions" for free.
+// it there. sessionStorage is a fine stand-in in the meantime (matches
+// where per-table column layout lives too, for the same reason).
 const COLLAPSE_STORAGE_KEY = 'rook:sidebar-collapsed'
 
 // `openId`/`toggle`/`close` come from AppShell now rather than a local
@@ -22,10 +22,10 @@ const COLLAPSE_STORAGE_KEY = 'rook:sidebar-collapsed'
 export function Sidebar({ openId, toggle, close }) {
   const { pathname } = useLocation()
   const { username, role } = useAuth()
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1')
+  const [collapsed, setCollapsed] = useState(() => sessionStorage.getItem(COLLAPSE_STORAGE_KEY) === '1')
 
   useEffect(() => {
-    localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0')
+    sessionStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0')
   }, [collapsed])
 
   return (

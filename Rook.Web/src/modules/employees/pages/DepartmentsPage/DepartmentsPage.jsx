@@ -1,6 +1,6 @@
 import './DepartmentsPage.css'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useApiFetch } from '@services/api/useApiFetch.js'
 import { useLiveConnection } from '@services/realtime/useLiveConnection.js'
 import { useToast } from '@app/providers/ToastProvider.jsx'
@@ -12,21 +12,24 @@ import { Button } from '@shared/components/composite/Button'
 import { Banner } from '@shared/components/composite/Banner'
 import { Skeleton } from '@shared/components/primitives/Skeleton'
 import { Tooltip } from '@shared/components/primitives/Tooltip'
+import { Menu } from '@shared/components/composite/Menu'
 import { dateSortValue, formatDate, formatDateTime, formatRelativeDate } from '@shared/utils/formatDate.js'
 
 const columns = [
-  { key: 'name', label: 'Name', sortable: true },
+  { key: 'name', label: 'Name', sortable: true, width: 220 },
   {
     key: 'employeeCount',
     label: 'Employees',
     sortable: true,
     align: 'right',
+    width: 120,
     render: (row) => row.employeeCount ?? 0,
   },
   {
     key: 'createdAt',
     label: 'Created',
     sortable: true,
+    width: 160,
     sortValue: (row) => dateSortValue(row.createdAt),
     render: (row) => formatDate(row.createdAt) ?? '—',
   },
@@ -34,6 +37,7 @@ const columns = [
     key: 'lastEditedAt',
     label: 'Last Edited',
     sortable: true,
+    width: 160,
     sortValue: (row) => dateSortValue(row.lastEditedAt),
     render: (row) => {
       const relative = formatRelativeDate(row.lastEditedAt)
@@ -59,6 +63,7 @@ export function DepartmentsPage() {
   const [departments, setDepartments] = useState(null) // null = still loading
   const [loadError, setLoadError] = useState(null)
   const [query, setQuery] = useState('')
+  const tableRef = useRef(null)
 
   // The backend now excludes the calling connection from its own
   // ListChanged broadcast (GroupExcept, keyed off the connection id we
@@ -231,6 +236,14 @@ export function DepartmentsPage() {
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search departments"
             />
+            <Menu
+              triggerSize={18}
+              label="Table options"
+              items={[
+                { key: 'reset-widths', label: 'Reset column widths', icon: 'grid', onClick: () => tableRef.current?.resetColumnLayout() },
+                { key: 'refresh', label: 'Refresh table', icon: 'refresh', onClick: () => loadDepartments() },
+              ]}
+            />
             <div className="table-toolbar__spacer" />
             {query && (
               <span className="table-toolbar__count">{filtered.length} of {departments.length}</span>
@@ -238,6 +251,8 @@ export function DepartmentsPage() {
           </div>
 
           <DataTable
+            ref={tableRef}
+            tableId="departments"
             columns={columns}
             rows={filtered}
             actionsPosition="top"
