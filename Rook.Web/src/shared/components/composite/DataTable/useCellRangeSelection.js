@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '@shared/utils/cn.js'
 import { cellText } from '@shared/utils/exportToExcel.js'
 import { getTableLayout, saveTableLayout } from '@shared/utils/tableLayoutStorage.js'
 
@@ -190,17 +189,37 @@ function useCellRangeSelection({ tableId, sorted, orderedColumns, scrollRef, onC
     minCol: Math.min(cellSelection.anchorCol, cellSelection.endCol),
     maxCol: Math.max(cellSelection.anchorCol, cellSelection.endCol),
   }
-  function cellSelectionClass(rowIndex, colIndex) {
-    if (!selectionBounds) return ''
+
+  // The tinted background is still a plain class (composes fine, doesn't
+  // affect layout either way) — but the selection-edge lines are computed
+  // here as an inline box-shadow rather than border classes. Borders are
+  // real layout, and under border-collapse a border on the *outer* edge
+  // of the table (the rightmost column has no sibling to collapse into)
+  // still adds its own width to the render — which the table's own
+  // computed width has no way to know about, since that's worked out
+  // purely from column content widths. The result was a real pixel or two
+  // of bleed past the table's right edge. box-shadow: inset renders
+  // inside the cell's existing box instead, so it can never add width —
+  // and building the combined value here means up to four insets (a
+  // single selected cell needs all of them at once) compose correctly,
+  // which separate CSS classes each setting their own box-shadow
+  // couldn't do without a combinatorial set of corner-case rules.
+  function cellSelectionStyle(rowIndex, colIndex) {
+    if (!selectionBounds) return undefined
     const { minRow, maxRow, minCol, maxCol } = selectionBounds
-    if (rowIndex < minRow || rowIndex > maxRow || colIndex < minCol || colIndex > maxCol) return ''
-    return cn(
-      'is-cell-selected',
-      rowIndex === minRow && 'is-selection-top',
-      rowIndex === maxRow && 'is-selection-bottom',
-      colIndex === minCol && 'is-selection-left',
-      colIndex === maxCol && 'is-selection-right',
-    )
+    if (rowIndex < minRow || rowIndex > maxRow || colIndex < minCol || colIndex > maxCol) return undefined
+    const shadows = []
+    if (rowIndex === minRow) shadows.push('inset 0 2px 0 0 var(--color-accent)')
+    if (rowIndex === maxRow) shadows.push('inset 0 -2px 0 0 var(--color-accent)')
+    if (colIndex === minCol) shadows.push('inset 2px 0 0 0 var(--color-accent)')
+    if (colIndex === maxCol) shadows.push('inset -2px 0 0 0 var(--color-accent)')
+    return shadows.length ? { boxShadow: shadows.join(', ') } : undefined
+  }
+
+  function isCellSelected(rowIndex, colIndex) {
+    if (!selectionBounds) return false
+    const { minRow, maxRow, minCol, maxCol } = selectionBounds
+    return rowIndex >= minRow && rowIndex <= maxRow && colIndex >= minCol && colIndex <= maxCol
   }
 
   return {
@@ -211,7 +230,8 @@ function useCellRangeSelection({ tableId, sorted, orderedColumns, scrollRef, onC
     toggleCellHighlight,
     startCellSelect,
     extendCellSelect,
-    cellSelectionClass,
+    isCellSelected,
+    cellSelectionStyle,
   }
 }
 

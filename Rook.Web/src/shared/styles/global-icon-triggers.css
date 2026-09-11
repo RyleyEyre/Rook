@@ -38,6 +38,8 @@
 { animation: icon-spin-once 0.5s ease; }
 
 .nav-link:hover .rk-icon-anim--spin-slow, .nav-link:focus-visible .rk-icon-anim--spin-slow,
+:is(.btn, .icon-btn, .menu__item):not(:disabled):hover .rk-icon-anim--spin-slow,
+:is(.btn, .icon-btn, .menu__item):not(:disabled):focus-visible .rk-icon-anim--spin-slow,
 .icon-preview:hover .rk-icon-anim--spin-slow, .icon-preview:focus-visible .rk-icon-anim--spin-slow
 { animation: icon-spin-slow 0.4s ease; }
 
@@ -55,6 +57,8 @@ input:checked + .checkbox__box .rk-icon-anim--pop { animation: icon-pop 0.3s eas
 .field__control:hover .rk-icon-anim--nudge-down, .field__control:focus-within .rk-icon-anim--nudge-down,
 .tabs__tab:hover .rk-icon-anim--nudge-down, .tabs__tab:focus-visible .rk-icon-anim--nudge-down,
 th.is-sortable:hover .rk-icon-anim--nudge-down, th.is-sortable:focus-visible .rk-icon-anim--nudge-down,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--nudge-down,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--nudge-down,
 .icon-preview:hover .rk-icon-anim--nudge-down, .icon-preview:focus-visible .rk-icon-anim--nudge-down
 { animation: icon-nudge-down 0.35s ease; }
 

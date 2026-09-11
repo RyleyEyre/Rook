@@ -6,13 +6,16 @@ import { HoldToConfirmButton, HoldToConfirmIconButton } from '@shared/components
 import { Checkbox } from '@shared/components/composite/Field'
 import { ConfirmModal } from '@shared/components/composite/ConfirmModal'
 import { Menu } from '@shared/components/composite/Menu'
+import { Tooltip } from '@shared/components/primitives/Tooltip'
 import { exportTableToExcel } from '@shared/utils/exportToExcel.js'
 import { useTableSort } from './useTableSort.js'
+import { usePagination } from './usePagination.js'
 import { useRowSelection } from './useRowSelection.js'
 import { useColumnLayout } from './useColumnLayout.js'
 import { useCellRangeSelection } from './useCellRangeSelection.js'
 
 const DEFAULT_MIN_COL_WIDTH = 100
+const FLAG_COL_WIDTH = 40
 const SELECT_COL_WIDTH = 50 // 16px left padding + 18px radio/checkbox + 14px right padding, plus a couple to spare
 const MENU_COL_WIDTH = 44
 const SIDE_ACTIONS_COL_WIDTH = 88
@@ -24,6 +27,17 @@ const SIDE_ACTIONS_COL_WIDTH = 88
 // used to be ~850 lines covering ten-plus distinct concerns in one place;
 // the public API (this component, one import, one consistent set of
 // props) hasn't changed, only how the internals are organized.
+//
+// (row) => string | null/undefined — a truthy return flags the row: a
+// small warning icon appears in a dedicated leftmost column (shown
+// automatically whenever this prop is passed) with the returned string as
+// its tooltip, and the row gets a distinct tinted background.
+//
+// Per-column col.drillTo: (row) => void — double-click a cell in this
+// column to fire it. Deliberately just a plain callback, not something
+// DataTable resolves into a navigation itself — it doesn't import
+// react-router, so a page wires this to whatever "drill in" should mean
+// for it, typically `drillTo: (row) => navigate(\`/employees/${row.id}\`)`.
 //
 // showActionsMenu: independent of actionsPosition — a compact per-row
 // "..." menu (Edit / Delete / whatever's in `rowActions`), replacing the
@@ -64,6 +78,30 @@ export function DataTable({
   rowActions = () => [],
   getRecordName,
   menuDeleteMode = 'confirm',
+  // (row) => string | null/undefined — a truthy return flags the row: a
+  // small warning icon appears in a dedicated leftmost column (shown
+  // automatically whenever this prop is passed, no separate toggle prop
+  // needed) with the returned string as its tooltip, and the row gets a
+  // distinct tinted background. E.g. for an incomplete-profile flag:
+  // `rowFlag={(row) => !row.isProfileComplete && 'Profile incomplete'}`.
+  rowFlag,
+  // Pagination — one API, two genuinely different modes (see
+  // usePagination.js). showPagination is the master toggle; off by
+  // default so a table like Departments (which doesn't need it) has zero
+  // footprint. manualPagination: false (default) means DataTable already
+  // has the full dataset in `rows` and pages through it client-side —
+  // just flip showPagination on, nothing else to wire up. true means
+  // `rows` is already just the current page (fetched from a paged
+  // endpoint) and page/pageSize/rowCount/onPaginationChange become the
+  // caller's to own and respond to.
+  showPagination = false,
+  manualPagination = false,
+  pageSizeOptions = [50, 100, 250, 500],
+  defaultPageSize,
+  page,
+  pageSize,
+  rowCount,
+  onPaginationChange,
   // Identifies this table instance for persisted column layout (order +
   // widths) — must be unique across the app, e.g. "departments". Without
   // one, resizing/reordering still works for the session but nothing is
@@ -99,15 +137,24 @@ export function DataTable({
   const [pendingDelete, setPendingDelete] = useState(null)
 
   const { sort, toggleSort, sorted } = useTableSort(rows, columns, initialSort)
+  const {
+    page: currentPage, pageSize: currentPageSize, pageCount, rowCount: totalRowCount,
+    pagedRows, setPage, setPageSize,
+  } = usePagination({
+    rows: sorted, showPagination, manualPagination, tableId, pageSizeOptions, defaultPageSize,
+    page, pageSize, rowCount, onPaginationChange,
+  })
   const { selected, toggleRow, allSelected, toggleSelectAll, selectedRows, clearSelection } =
-    useRowSelection({ sorted, rowKey, actionsPosition, selectionMode })
+    useRowSelection({ sorted: pagedRows, rowKey, actionsPosition, selectionMode })
 
+  const showFlagCol = Boolean(rowFlag)
   const showSelectCol = actionsPosition === 'top'
   // showActionsMenu takes over the rightmost per-row slot when it's on, so
   // the old side-icons rendering steps aside rather than doubling up.
   const showActionsCol = actionsPosition === 'side' && (showEdit || showDelete) && !showActionsMenu
   const showMenuCol = showActionsMenu
   const fixedColsWidth =
+    (showFlagCol ? FLAG_COL_WIDTH : 0) +
     (showSelectCol ? SELECT_COL_WIDTH : 0) +
     (showMenuCol ? MENU_COL_WIDTH : 0) +
     (showActionsCol ? SIDE_ACTIONS_COL_WIDTH : 0)
@@ -120,8 +167,8 @@ export function DataTable({
 
   const {
     rootRef, cellSelection, setCellSelection, cellHighlightEnabled, toggleCellHighlight,
-    startCellSelect, extendCellSelect, cellSelectionClass,
-  } = useCellRangeSelection({ tableId, sorted, orderedColumns, scrollRef, onCellHighlightChange })
+    startCellSelect, extendCellSelect, isCellSelected, cellSelectionStyle,
+  } = useCellRangeSelection({ tableId, sorted: pagedRows, orderedColumns, scrollRef, onCellHighlightChange })
 
   useImperativeHandle(ref, () => ({
     resetColumnLayout,
@@ -274,6 +321,7 @@ export function DataTable({
         <div className="table-scroll" ref={scrollRef} style={{ maxHeight }}>
           <table className={cn('data-table', !cellHighlightEnabled && 'cell-highlight-disabled')} style={{ width: tableWidth }}>
             <colgroup>
+              {showFlagCol && <col style={{ width: FLAG_COL_WIDTH }} />}
               {showSelectCol && <col style={{ width: SELECT_COL_WIDTH }} />}
               {showMenuCol && <col style={{ width: MENU_COL_WIDTH }} />}
               {orderedColumns.map((col) => (
@@ -283,6 +331,7 @@ export function DataTable({
             </colgroup>
             <thead>
               <tr>
+                {showFlagCol && <th className="data-table__flag-col" />}
                 {showSelectCol && (
                   <th className="data-table__select-col">
                     {selectionMode === 'multi' && (
@@ -329,15 +378,25 @@ export function DataTable({
               </tr>
             </thead>
             <tbody>
-              {sorted.map((row, rowIndex) => {
+              {pagedRows.map((row, rowIndex) => {
                 const key = rowKey(row)
                 const isSelected = selected.has(key)
+                const flagReason = rowFlag?.(row)
                 return (
                   <tr
                     key={key}
-                    className={cn(isSelected && 'is-selected', showSelectCol && 'is-row-clickable')}
+                    className={cn(isSelected && 'is-selected', Boolean(flagReason) && 'is-flagged', showSelectCol && 'is-row-clickable')}
                     onClick={showSelectCol ? () => toggleRow(key) : undefined}
                   >
+                    {showFlagCol && (
+                      <td className="data-table__flag-col">
+                        {flagReason && (
+                          <Tooltip label={flagReason}>
+                            <Icon name="warning" size={15} />
+                          </Tooltip>
+                        )}
+                      </td>
+                    )}
                     {showSelectCol && (
                       <td
                         className="data-table__select-col"
@@ -363,12 +422,16 @@ export function DataTable({
                     {orderedColumns.map((col, colIndex) => (
                       <td
                         key={col.key}
-                        className={cellSelectionClass(rowIndex, colIndex)}
+                        className={cn(isCellSelected(rowIndex, colIndex) && 'is-cell-selected', col.drillTo && 'is-drillable')}
                         data-row-index={rowIndex}
                         data-col-index={colIndex}
-                        style={col.align ? { textAlign: col.align } : undefined}
+                        style={{
+                          ...(col.align ? { textAlign: col.align } : null),
+                          ...(cellSelectionStyle(rowIndex, colIndex) ?? null),
+                        }}
                         onMouseDown={cellHighlightEnabled ? () => startCellSelect(rowIndex, colIndex) : undefined}
                         onMouseEnter={cellHighlightEnabled ? () => extendCellSelect(rowIndex, colIndex) : undefined}
+                        onDoubleClick={col.drillTo ? () => col.drillTo(row) : undefined}
                       >
                         {col.render ? col.render(row) : row[col.key]}
                       </td>
@@ -397,13 +460,52 @@ export function DataTable({
               })}
             </tbody>
           </table>
-          {sorted.length === 0 && (
+          {pagedRows.length === 0 && (
             <div className="table-empty">
               <p>{emptyMessage}</p>
             </div>
           )}
         </div>
       </div>
+
+      {showPagination && (
+        <div className="data-table-pagination">
+          <div className="data-table-pagination__size">
+            <span>Rows per page</span>
+            <select
+              className="data-table-pagination__select"
+              value={currentPageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              aria-label="Rows per page"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+          <span className="data-table-pagination__summary">
+            {totalRowCount === 0
+              ? '0 of 0'
+              : `${(currentPage - 1) * currentPageSize + 1}–${Math.min(currentPage * currentPageSize, totalRowCount)} of ${totalRowCount}`}
+          </span>
+          <div className="data-table-pagination__nav">
+            <IconButton
+              icon="chevronRight"
+              label="Previous page"
+              className="data-table-pagination__prev"
+              disabled={currentPage <= 1}
+              onClick={() => setPage(currentPage - 1)}
+            />
+            <span className="data-table-pagination__page">Page {currentPage} of {pageCount}</span>
+            <IconButton
+              icon="chevronRight"
+              label="Next page"
+              disabled={currentPage >= pageCount}
+              onClick={() => setPage(currentPage + 1)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

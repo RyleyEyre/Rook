@@ -74,6 +74,14 @@
 .data-table tbody tr.is-terminated { opacity: 0.6; }
 .data-table tbody tr.is-selected { background: rgba(var(--color-accent-rgb), 0.08); }
 .data-table tbody tr.is-selected:hover { background: rgba(var(--color-accent-rgb), 0.13); }
+.data-table tbody tr.is-flagged { background: rgba(var(--color-warning-rgb), 0.08); }
+.data-table tbody tr.is-flagged:hover { background: rgba(var(--color-warning-rgb), 0.13); }
+/* A row that's both selected and flagged reads as "selected" first —
+   that's the more active state of the two — via higher specificity
+   (two classes) rather than depending on which rule happens to come
+   later in the file. The flag icon itself still always shows regardless. */
+.data-table tbody tr.is-flagged.is-selected { background: rgba(var(--color-accent-rgb), 0.08); }
+.data-table tbody tr.is-flagged.is-selected:hover { background: rgba(var(--color-accent-rgb), 0.13); }
 
 /* Excel-style cell-range selection replaces native text selection inside
    the body entirely — dragging across cells builds a rectangular
@@ -86,21 +94,34 @@
 .data-table.cell-highlight-disabled tbody td { cursor: auto; }
 .data-table tbody td.is-cell-selected { background: rgba(var(--color-accent-rgb), 0.12); }
 .data-table tbody tr:hover td.is-cell-selected { background: rgba(var(--color-accent-rgb), 0.16); }
-/* One solid rectangle around the whole selection, not a box around every
-   individual cell. border-top/-bottom/-left/-right are four independent
-   properties, so these compose for free on a corner cell (all four
-   classes at once) without needing a combinatorial set of corner rules —
-   a box-shadow-based version would've needed one. */
-.data-table tbody td.is-selection-top { border-top: 2px solid var(--color-accent); }
-.data-table tbody td.is-selection-bottom { border-bottom: 2px solid var(--color-accent) !important; }
-.data-table tbody td.is-selection-left { border-left: 2px solid var(--color-accent); }
-.data-table tbody td.is-selection-right { border-right: 2px solid var(--color-accent); }
+/* Drillable cells (col.drillTo — double-click to navigate/act on a row)
+   get their own cursor rather than the cell-range-selection crosshair,
+   plus a faint underline on hover as the "there's more here" hint —
+   discoverable without being as loud as a full button. */
+.data-table tbody td.is-drillable { cursor: pointer; }
+.data-table tbody td.is-drillable:hover { text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; }
+/* Selection-edge lines (top/bottom/left/right of the selected block) are
+   no longer CSS classes here at all — they're computed as an inline
+   box-shadow in useCellRangeSelection.js's cellSelectionStyle(). Border-
+   based edges added real layout width on the table's outer boundary
+   (nothing to collapse into on the rightmost column), which bled a
+   couple of pixels past the table's own computed width; box-shadow:inset
+   renders inside the cell's existing box instead, so it can't. Computing
+   it in JS also means up to four insets at once (a single selected cell)
+   combine correctly, which separate CSS classes each setting their own
+   box-shadow couldn't do without a combinatorial set of corner rules.
+   Bonus: it's also immune to the tr:last-child border-bottom:none
+   specificity fight further up this file, since box-shadow and border
+   are independent properties now instead of both fighting over border.
+   */
 .data-table .cell-name { font-weight: 600; }
 .data-table .cell-sub { color: var(--color-text-muted); font-size: 12px; }
 .data-table .cell-mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-muted); }
 .data-table .cell-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .data-table .cell-name-wrap { display: flex; align-items: center; gap: 10px; }
 .data-table__select-col { width: 50px; padding-left: 16px !important; padding-right: 14px !important; cursor: pointer !important; }
+.data-table__flag-col { width: 40px; text-align: center; padding-left: 12px !important; padding-right: 4px !important; }
+.data-table__flag-col svg { color: var(--color-warning); vertical-align: middle; }
 .data-table__menu-col { width: 44px; padding-left: 4px !important; padding-right: 4px !important; }
 .table-radio { display: inline-flex; }
 
@@ -122,3 +143,22 @@
 .data-table-toolbar__deselect:hover:not(:disabled) { color: var(--color-accent-hover); }
 .data-table-toolbar__deselect:disabled { color: var(--color-text-faint); cursor: not-allowed; text-decoration: none; }
 .data-table-toolbar__actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.data-table-pagination {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 10px 14px; margin-top: 10px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); background: var(--color-panel-2);
+  font-size: 12.5px; color: var(--color-text-muted);
+}
+.data-table-pagination__size { display: flex; align-items: center; gap: 8px; }
+.data-table-pagination__select {
+  background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  color: var(--color-text); font-family: inherit; font-size: 12.5px; padding: 4px 8px; cursor: pointer;
+}
+.data-table-pagination__select:hover { border-color: var(--color-border-strong); }
+.data-table-pagination__summary { flex: 1; text-align: center; white-space: nowrap; }
+.data-table-pagination__nav { display: flex; align-items: center; gap: 10px; }
+.data-table-pagination__page { white-space: nowrap; }
+/* The icon set has no dedicated "previous"/chevron-left glyph — reusing
+   chevronRight rotated 180°, same trick as the sidebar's collapse toggle. */
+.data-table-pagination__prev svg { transform: rotate(180deg); }

@@ -248,7 +248,6 @@ export function DepartmentsPage() {
               triggerSize={18}
               label="Table options"
               items={[
-                { key: 'reset-widths', label: 'Reset column widths', icon: 'grid', onClick: () => tableRef.current?.resetColumnLayout() },
                 {
                   key: 'refresh',
                   label: 'Refresh table',
@@ -259,10 +258,11 @@ export function DepartmentsPage() {
                   },
                 },
                 { key: 'export', label: 'Export to Excel', icon: 'download', onClick: () => tableRef.current?.exportToExcel('departments') },
+                { key: 'reset-widths', label: 'Reset columns', icon: 'gear', onClick: () => tableRef.current?.resetColumnLayout() },
                 {
                   key: 'toggle-highlight',
                   label: cellHighlightEnabled ? 'Disable cell highlighting' : 'Enable cell highlighting',
-                  icon: 'grid',
+                  icon: 'gear',
                   onClick: () => tableRef.current?.toggleCellHighlight(),
                 },
               ]}
@@ -292,6 +292,8 @@ export function DepartmentsPage() {
             recordLabel="department"
             deleteConfirmSeconds={2}
             emptyMessage={query ? 'No departments match your search.' : 'No departments yet.'}
+            showPagination
+            pageSizeOptions={[50, 100, 250, 500]}
           />
         </>
       )}
