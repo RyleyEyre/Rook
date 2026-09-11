@@ -42,6 +42,7 @@ const paths = {
   folder: 'M3 6a1 1 0 0 1 1-1h5.5l1.5 2H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6Z',
   clock: 'M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0ZM12 7v5l3.5 2',
   logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  download: 'M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2',
 }
 
 // The trash can is split into a lid (rim + handle) and a body so the two
@@ -87,6 +88,7 @@ const hoverAnimations = {
   grid: 'pop',
   folder: 'wiggle',
   clock: 'ring',
+  download: 'nudge-down',
   // 'gear' is handled separately below — it spins as a whole on hover.
   // spinner already spins continuously via .btn__spinner while loading —
   // giving it a second hover animation would just look broken.
@@ -136,7 +138,7 @@ export function Icon({ name, size = 18, className, ...rest }) {
   const d = paths[name]
   if (!d) return null
   const isStroke = ['sortUp', 'sortDown', 'sortBoth', 'check', 'x', 'chevronDown', 'chevronRight',
-    'warning', 'info', 'spinner', 'plus', 'eye', 'eyeOff', 'filter', 'dots', 'dotsVertical', 'bell', 'lock', 'refresh', 'clock', 'logout'].includes(name)
+    'warning', 'info', 'spinner', 'plus', 'eye', 'eyeOff', 'filter', 'dots', 'dotsVertical', 'bell', 'lock', 'refresh', 'clock', 'logout', 'download'].includes(name)
   const anim = hoverAnimations[name]
   const classes = ['rk-icon', `rk-icon--${name}`, anim && `rk-icon-anim--${anim}`, className].filter(Boolean).join(' ')
   return (

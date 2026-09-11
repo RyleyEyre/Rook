@@ -38,11 +38,12 @@
 .radio-group { display: flex; flex-direction: column; gap: 10px; }
 .radio__dot {
   width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-border-strong);
-  background: var(--color-panel-2); position: relative; transition: all var(--transition-fast); flex: none;
+  background: var(--color-panel-2); transition: all var(--transition-fast); flex: none;
+  display: flex; align-items: center; justify-content: center;
 }
 .radio input:checked + .radio__dot { border-color: var(--color-accent); }
 .radio input:checked + .radio__dot::after {
-  content: ''; position: absolute; inset: 3.5px; border-radius: 50%; background: var(--color-accent);
+  content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--color-accent);
 }
 .radio input:focus-visible + .radio__dot { box-shadow: var(--focus-ring); }
 

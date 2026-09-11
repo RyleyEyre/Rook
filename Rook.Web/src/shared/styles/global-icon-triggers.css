@@ -12,28 +12,28 @@
    fire on :hover/:focus-visible only (not `infinite`), so they play once
    per hover-in rather than looping. */
 
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--trash-hop,
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--trash-hop,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--trash-hop,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--trash-hop,
 .icon-preview:hover .rk-icon-anim--trash-hop, .icon-preview:focus-visible .rk-icon-anim--trash-hop
 { animation: icon-trash-hop 0.7s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--trash-hop .rk-icon-trash-lid,
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--trash-hop .rk-icon-trash-lid,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--trash-hop .rk-icon-trash-lid,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--trash-hop .rk-icon-trash-lid,
 .icon-preview:hover .rk-icon-anim--trash-hop .rk-icon-trash-lid, .icon-preview:focus-visible .rk-icon-anim--trash-hop .rk-icon-trash-lid
 { animation: icon-trash-lid-pop 0.7s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--buzz,
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--buzz,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--buzz,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--buzz,
 .icon-preview:hover .rk-icon-anim--buzz, .icon-preview:focus-visible .rk-icon-anim--buzz
 { animation: icon-buzz 0.4s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--wiggle,
-:is(.btn, .icon-btn, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--wiggle,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):hover .rk-icon-anim--wiggle,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .hold-btn, .hold-icon-btn):not(:disabled):focus-visible .rk-icon-anim--wiggle,
 .icon-preview:hover .rk-icon-anim--wiggle, .icon-preview:focus-visible .rk-icon-anim--wiggle
 { animation: icon-wiggle 0.5s ease; }
 
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--spin-once,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):focus-visible .rk-icon-anim--spin-once,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--spin-once,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--spin-once,
 .icon-preview:hover .rk-icon-anim--spin-once, .icon-preview:focus-visible .rk-icon-anim--spin-once
 { animation: icon-spin-once 0.5s ease; }
 
@@ -41,14 +41,14 @@
 .icon-preview:hover .rk-icon-anim--spin-slow, .icon-preview:focus-visible .rk-icon-anim--spin-slow
 { animation: icon-spin-slow 0.4s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .checkbox, .field__reveal):hover .rk-icon-anim--pop,
-:is(.btn, .icon-btn, .nav-link, .checkbox, .field__reveal):focus-visible .rk-icon-anim--pop,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .checkbox, .field__reveal):hover .rk-icon-anim--pop,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .checkbox, .field__reveal):focus-visible .rk-icon-anim--pop,
 .icon-preview:hover .rk-icon-anim--pop, .icon-preview:focus-visible .rk-icon-anim--pop
 { animation: icon-pop 0.35s ease; }
 input:checked + .checkbox__box .rk-icon-anim--pop { animation: icon-pop 0.3s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .modal__close, .banner__close, .toast__close):not(:disabled):hover .rk-icon-anim--pop-rotate,
-:is(.btn, .icon-btn, .nav-link, .modal__close, .banner__close, .toast__close):not(:disabled):focus-visible .rk-icon-anim--pop-rotate,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .modal__close, .banner__close, .toast__close):not(:disabled):hover .rk-icon-anim--pop-rotate,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .modal__close, .banner__close, .toast__close):not(:disabled):focus-visible .rk-icon-anim--pop-rotate,
 .icon-preview:hover .rk-icon-anim--pop-rotate, .icon-preview:focus-visible .rk-icon-anim--pop-rotate
 { animation: icon-pop-rotate 0.4s ease; }
 
@@ -69,23 +69,23 @@ th.is-sortable:hover .rk-icon-anim--nudge-y, th.is-sortable:focus-visible .rk-ic
 .icon-preview:hover .rk-icon-anim--nudge-right, .icon-preview:focus-visible .rk-icon-anim--nudge-right
 { animation: icon-nudge-right 0.4s ease; }
 
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--ring,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):focus-visible .rk-icon-anim--ring,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--ring,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--ring,
 .icon-preview:hover .rk-icon-anim--ring, .icon-preview:focus-visible .rk-icon-anim--ring
 { animation: icon-ring 0.6s ease; }
 
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--jiggle,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):focus-visible .rk-icon-anim--jiggle,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--jiggle,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--jiggle,
 .icon-preview:hover .rk-icon-anim--jiggle, .icon-preview:focus-visible .rk-icon-anim--jiggle
 { animation: icon-jiggle 0.4s ease; }
 
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--tilt,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):focus-visible .rk-icon-anim--tilt,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--tilt,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--tilt,
 .icon-preview:hover .rk-icon-anim--tilt, .icon-preview:focus-visible .rk-icon-anim--tilt
 { animation: icon-tilt 0.4s ease; }
 
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--bounce,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):focus-visible .rk-icon-anim--bounce,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--bounce,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):focus-visible .rk-icon-anim--bounce,
 .icon-preview:hover .rk-icon-anim--bounce, .icon-preview:focus-visible .rk-icon-anim--bounce
 { animation: icon-bounce 0.5s ease; }
 
@@ -93,12 +93,12 @@ th.is-sortable:hover .rk-icon-anim--nudge-y, th.is-sortable:focus-visible .rk-ic
 .icon-preview:hover .rk-icon-anim--blink, .icon-preview:focus-visible .rk-icon-anim--blink
 { animation: icon-blink 0.35s ease; }
 
-:is(.btn, .icon-btn, .nav-link, .banner, .toast):hover .rk-icon-anim--pulse,
+:is(.btn, .icon-btn, .menu__item, .nav-link, .banner, .toast):hover .rk-icon-anim--pulse,
 .icon-preview:hover .rk-icon-anim--pulse, .icon-preview:focus-visible .rk-icon-anim--pulse
 { animation: icon-pulse 0.5s ease; }
 
 .field__control:hover .rk-icon-anim--zoom, .field__control:focus-within .rk-icon-anim--zoom,
-:is(.btn, .icon-btn, .nav-link):not(:disabled):hover .rk-icon-anim--zoom,
+:is(.btn, .icon-btn, .menu__item, .nav-link):not(:disabled):hover .rk-icon-anim--zoom,
 .icon-preview:hover .rk-icon-anim--zoom, .icon-preview:focus-visible .rk-icon-anim--zoom
 { animation: icon-zoom 0.5s ease; }
 

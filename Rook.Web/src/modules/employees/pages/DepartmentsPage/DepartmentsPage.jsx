@@ -13,7 +13,7 @@ import { Banner } from '@shared/components/composite/Banner'
 import { Skeleton } from '@shared/components/primitives/Skeleton'
 import { Tooltip } from '@shared/components/primitives/Tooltip'
 import { Menu } from '@shared/components/composite/Menu'
-import { dateSortValue, formatDate, formatDateTime, formatRelativeDate } from '@shared/utils/formatDate.js'
+import { dateSortValue, formatDate, formatDateForExport, formatDateTime, formatRelativeDate } from '@shared/utils/formatDate.js'
 
 const columns = [
   { key: 'name', label: 'Name', sortable: true, width: 220 },
@@ -31,6 +31,7 @@ const columns = [
     sortable: true,
     width: 160,
     sortValue: (row) => dateSortValue(row.createdAt),
+    exportValue: (row) => formatDateForExport(row.createdAt),
     render: (row) => formatDate(row.createdAt) ?? '—',
   },
   {
@@ -39,6 +40,7 @@ const columns = [
     sortable: true,
     width: 160,
     sortValue: (row) => dateSortValue(row.lastEditedAt),
+    exportValue: (row) => formatDateForExport(row.lastEditedAt),
     render: (row) => {
       const relative = formatRelativeDate(row.lastEditedAt)
       return relative
@@ -241,7 +243,16 @@ export function DepartmentsPage() {
               label="Table options"
               items={[
                 { key: 'reset-widths', label: 'Reset column widths', icon: 'grid', onClick: () => tableRef.current?.resetColumnLayout() },
-                { key: 'refresh', label: 'Refresh table', icon: 'refresh', onClick: () => loadDepartments() },
+                {
+                  key: 'refresh',
+                  label: 'Refresh table',
+                  icon: 'refresh',
+                  onClick: async () => {
+                    await loadDepartments()
+                    push({ tone: 'success', title: 'Table refreshed' })
+                  },
+                },
+                { key: 'export', label: 'Export to Excel', icon: 'download', onClick: () => tableRef.current?.exportToExcel('departments') },
               ]}
             />
             <div className="table-toolbar__spacer" />
@@ -263,7 +274,7 @@ export function DepartmentsPage() {
             showSelected={false}
             createLabel="New Department"
             onCreate={openCreate}
-            onEdit={openEdit}
+            onEdit={openEdit} 
             onDelete={handleDelete}
             recordLabel="department"
             deleteConfirmSeconds={2}

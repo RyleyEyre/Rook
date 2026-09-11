@@ -7,10 +7,11 @@ import { Checkbox } from '@shared/components/composite/Field'
 import { ConfirmModal } from '@shared/components/composite/ConfirmModal'
 import { Menu } from '@shared/components/composite/Menu'
 import { clearTableLayout, getTableLayout, saveTableLayout } from '@shared/utils/tableLayoutStorage.js'
+import { cellText, exportTableToExcel } from '@shared/utils/exportToExcel.js'
 
 const DEFAULT_COL_WIDTH = 160
 const DEFAULT_MIN_COL_WIDTH = 100
-const SELECT_COL_WIDTH = 40
+const SELECT_COL_WIDTH = 44 // 16px left padding + 18px radio/checkbox + 8px right padding, plus a couple to spare
 const MENU_COL_WIDTH = 44
 const SIDE_ACTIONS_COL_WIDTH = 88
 
@@ -147,11 +148,14 @@ export function DataTable({
   // someone drag columns around wouldn't make sense).
   resizableColumns = true,
   reorderableColumns = true,
-  // A ref the caller can use for imperative table actions — currently
-  // just resetColumnLayout(), for a "reset column widths" menu item
-  // living outside this component (e.g. next to a page's search bar).
-  // React 19 accepts `ref` as a plain prop on function components, no
-  // forwardRef wrapper needed.
+  // A ref the caller can use for imperative table actions:
+  // resetColumnLayout() and exportToExcel(filename) — both live here
+  // rather than as toolbar props/buttons, since where the trigger UI for
+  // each one lives (in DataTable's own toolbar vs. a page's own menu
+  // next to its search bar) is a per-page layout choice, but the actual
+  // logic needs this component's live sorted/ordered rows and columns
+  // either way. React 19 accepts `ref` as a plain prop on function
+  // components, no forwardRef wrapper needed.
   ref,
 }) {
   const instanceId = useId()
@@ -186,16 +190,6 @@ export function DataTable({
   function persistLayout() {
     saveTableLayout(tableId, { order: orderRef.current, widths: widthsRef.current })
   }
-
-  useImperativeHandle(ref, () => ({
-    // Back to the caller's original column order and the proportional
-    // auto-fill widths — same state as a table that's never been touched.
-    resetColumnLayout() {
-      setColumnOrder(columns.map((c) => c.key))
-      setColumnWidths({})
-      clearTableLayout(tableId)
-    },
-  }), [columns, tableId])
 
   // The caller's `columns` prop stays the source of truth for what
   // columns exist and how — this just reorders them per the saved
@@ -354,6 +348,23 @@ export function DataTable({
     })
   }, [rows, sort, columns])
 
+  useImperativeHandle(ref, () => ({
+    // Back to the caller's original column order and the proportional
+    // auto-fill widths — same state as a table that's never been touched.
+    resetColumnLayout() {
+      setColumnOrder(columns.map((c) => c.key))
+      setColumnWidths({})
+      clearTableLayout(tableId)
+    },
+    // Exports whatever's currently visible — respects the live sort and
+    // column order, not just the original `columns`/`rows` props — since
+    // "export what I'm looking at" is the more useful default than
+    // "export the untouched original data".
+    exportToExcel(filename) {
+      exportTableToExcel(filename ?? tableId ?? 'export', orderedColumns, sorted)
+    },
+  }), [columns, tableId, orderedColumns, sorted])
+
   function toggleSort(key) {
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
   }
@@ -377,6 +388,168 @@ export function DataTable({
 
   const selectedRows = sorted.filter((row) => selected.has(rowKey(row)))
   const showTopBar = actionsPosition === 'top' || showCreate
+
+  // Excel-style rectangular cell selection + copy. Click-drag across data
+  // cells (never the select/menu/side-actions columns — those aren't
+  // "data") to select a block, then Ctrl/Cmd+C copies it as tab-separated
+  // text, so pasting into an actual spreadsheet reproduces the same grid
+  // — replacing the browser's default "just highlights running text
+  // across cells, copies it as one flat line" behavior entirely.
+  const [cellSelection, setCellSelection] = useState(null) // { anchorRow, anchorCol, endRow, endCol }
+  const isSelectingRef = useRef(false)
+  const rootRef = useRef(null)
+
+  function startCellSelect(rowIndex, colIndex) {
+    setCellSelection((sel) => {
+      const isSameSingleCell = sel
+        && sel.anchorRow === rowIndex && sel.anchorCol === colIndex
+        && sel.endRow === rowIndex && sel.endCol === colIndex
+      if (isSameSingleCell) {
+        // Clicking the one cell that's already selected toggles it off —
+        // also disarming isSelectingRef so a drag continuing from the
+        // same mousedown doesn't immediately re-select; releasing and
+        // starting a fresh mousedown elsewhere begins a new selection
+        // normally.
+        isSelectingRef.current = false
+        return null
+      }
+      isSelectingRef.current = true
+      return { anchorRow: rowIndex, anchorCol: colIndex, endRow: rowIndex, endCol: colIndex }
+    })
+  }
+  function extendCellSelect(rowIndex, colIndex) {
+    if (!isSelectingRef.current) return
+    setCellSelection((sel) => (sel ? { ...sel, endRow: rowIndex, endCol: colIndex } : sel))
+  }
+
+  // Auto-scroll while dragging a selection past the table's edge — without
+  // this, a table taller/wider than its visible area would be impossible
+  // to select all the way to the far end of, since dragging past the
+  // visible edge doesn't naturally scroll a container on its own.
+  // scrollVelocityRef is the "how fast, which direction" state, updated on
+  // every pointer move during a drag; a separate always-running interval
+  // is what actually applies it — decoupled like this because scrolling
+  // needs to keep happening even while the pointer itself is stationary
+  // (held at the edge), which a plain mousemove-driven scroll wouldn't do.
+  const scrollVelocityRef = useRef({ dx: 0, dy: 0 })
+  const lastPointerRef = useRef({ x: 0, y: 0 })
+
+  function updateAutoScroll(e) {
+    lastPointerRef.current = { x: e.clientX, y: e.clientY }
+    if (!isSelectingRef.current || !scrollRef.current) {
+      scrollVelocityRef.current = { dx: 0, dy: 0 }
+      return
+    }
+    const rect = scrollRef.current.getBoundingClientRect()
+    const EDGE = 36
+    const MAX_SPEED = 16
+    const proximity = (dist) => Math.min(1, (EDGE - dist) / EDGE)
+
+    let dy = 0
+    if (e.clientY < rect.top + EDGE) dy = -MAX_SPEED * proximity(e.clientY - rect.top)
+    else if (e.clientY > rect.bottom - EDGE) dy = MAX_SPEED * proximity(rect.bottom - e.clientY)
+
+    let dx = 0
+    if (e.clientX < rect.left + EDGE) dx = -MAX_SPEED * proximity(e.clientX - rect.left)
+    else if (e.clientX > rect.right - EDGE) dx = MAX_SPEED * proximity(rect.right - e.clientX)
+
+    scrollVelocityRef.current = { dx, dy }
+  }
+
+  useEffect(() => {
+    window.addEventListener('mousemove', updateAutoScroll)
+    return () => window.removeEventListener('mousemove', updateAutoScroll)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const { dx, dy } = scrollVelocityRef.current
+      const el = scrollRef.current
+      if (!el || (!dx && !dy)) return
+      el.scrollTop += dy
+      el.scrollLeft += dx
+      // The pointer itself isn't moving while held at the edge, so no
+      // mouseenter fires on newly-revealed cells — find whatever's now
+      // under that stationary point and extend the selection to it
+      // manually, same as if the pointer had genuinely dragged there.
+      const target = document.elementFromPoint(lastPointerRef.current.x, lastPointerRef.current.y)
+      const td = target?.closest('td[data-row-index]')
+      if (td) extendCellSelect(Number(td.dataset.rowIndex), Number(td.dataset.colIndex))
+    }, 16)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    function onMouseUp() {
+      isSelectingRef.current = false
+      scrollVelocityRef.current = { dx: 0, dy: 0 }
+    }
+    // Clicking anywhere outside this table clears the selection — mainly
+    // so a stray Ctrl+C somewhere else on the page (a different table, a
+    // text field) doesn't get silently hijacked by a selection the user
+    // has visually moved on from but never technically cleared.
+    function onMouseDownOutside(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setCellSelection(null)
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        isSelectingRef.current = false
+        setCellSelection(null)
+      }
+    }
+    window.addEventListener('mouseup', onMouseUp)
+    document.addEventListener('mousedown', onMouseDownOutside)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('mouseup', onMouseUp)
+      document.removeEventListener('mousedown', onMouseDownOutside)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
+    function onCopy(e) {
+      if (!cellSelection) return
+      const minRow = Math.min(cellSelection.anchorRow, cellSelection.endRow)
+      const maxRow = Math.max(cellSelection.anchorRow, cellSelection.endRow)
+      const minCol = Math.min(cellSelection.anchorCol, cellSelection.endCol)
+      const maxCol = Math.max(cellSelection.anchorCol, cellSelection.endCol)
+      const lines = []
+      for (let r = minRow; r <= maxRow; r++) {
+        const row = sorted[r]
+        if (!row) continue
+        const cells = []
+        for (let c = minCol; c <= maxCol; c++) {
+          const col = orderedColumns[c]
+          if (col) cells.push(cellText(col, row))
+        }
+        lines.push(cells.join('\t'))
+      }
+      e.clipboardData.setData('text/plain', lines.join('\n'))
+      e.preventDefault()
+    }
+    document.addEventListener('copy', onCopy)
+    return () => document.removeEventListener('copy', onCopy)
+  }, [cellSelection, sorted, orderedColumns])
+
+  const selectionBounds = cellSelection && {
+    minRow: Math.min(cellSelection.anchorRow, cellSelection.endRow),
+    maxRow: Math.max(cellSelection.anchorRow, cellSelection.endRow),
+    minCol: Math.min(cellSelection.anchorCol, cellSelection.endCol),
+    maxCol: Math.max(cellSelection.anchorCol, cellSelection.endCol),
+  }
+  function cellSelectionClass(rowIndex, colIndex) {
+    if (!selectionBounds) return ''
+    const { minRow, maxRow, minCol, maxCol } = selectionBounds
+    if (rowIndex < minRow || rowIndex > maxRow || colIndex < minCol || colIndex > maxCol) return ''
+    return cn(
+      'is-cell-selected',
+      rowIndex === minRow && 'is-selection-top',
+      rowIndex === maxRow && 'is-selection-bottom',
+      colIndex === minCol && 'is-selection-left',
+      colIndex === maxCol && 'is-selection-right',
+    )
+  }
 
   function handleDelete(targetRows) {
     onDelete?.(targetRows)
@@ -439,7 +612,7 @@ export function DataTable({
   }
 
   return (
-    <div className="data-table-block">
+    <div className="data-table-block" ref={rootRef}>
       {showTopBar && (
         <div className="data-table-toolbar">
           <div className="data-table-toolbar__left">
@@ -570,7 +743,7 @@ export function DataTable({
               </tr>
             </thead>
             <tbody>
-              {sorted.map((row) => {
+              {sorted.map((row, rowIndex) => {
                 const key = rowKey(row)
                 const isSelected = selected.has(key)
                 return (
@@ -598,8 +771,16 @@ export function DataTable({
                         </div>
                       </td>
                     )}
-                    {orderedColumns.map((col) => (
-                      <td key={col.key} style={col.align ? { textAlign: col.align } : undefined}>
+                    {orderedColumns.map((col, colIndex) => (
+                      <td
+                        key={col.key}
+                        className={cellSelectionClass(rowIndex, colIndex)}
+                        data-row-index={rowIndex}
+                        data-col-index={colIndex}
+                        style={col.align ? { textAlign: col.align } : undefined}
+                        onMouseDown={() => startCellSelect(rowIndex, colIndex)}
+                        onMouseEnter={() => extendCellSelect(rowIndex, colIndex)}
+                      >
                         {col.render ? col.render(row) : row[col.key]}
                       </td>
                     ))}

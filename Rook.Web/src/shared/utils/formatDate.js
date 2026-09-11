@@ -36,6 +36,22 @@ function formatDateTime(value) {
   return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+// DD/MM/YY HH:mm:ss, 24-hour, with seconds — specifically for file
+// exports (Excel/CSV), which want a plain, locale-unambiguous, sortable-
+// looking value rather than the "Sep 9, 2026" style used on-screen.
+// Built on toUtcDate() same as everything else here, so it still
+// converts to the browser's local time correctly.
+function formatDateForExport(value) {
+  if (isBlankDate(value)) return ''
+  const date = toUtcDate(value)
+  const pad = (n) => String(n).padStart(2, '0')
+  const day = pad(date.getDate())
+  const month = pad(date.getMonth() + 1)
+  const year = pad(date.getFullYear() % 100)
+  const time = [date.getHours(), date.getMinutes(), date.getSeconds()].map(pad).join(':')
+  return `${day}/${month}/${year} ${time}`
+}
+
 const RELATIVE_UNITS = [
   ['year', 31536000],
   ['month', 2592000],
@@ -65,4 +81,4 @@ function dateSortValue(value) {
   return isBlankDate(value) ? '' : value
 }
 
-export { isBlankDate, formatDate, formatDateTime, formatRelativeDate, dateSortValue, toUtcDate }
+export { isBlankDate, formatDate, formatDateTime, formatDateForExport, formatRelativeDate, dateSortValue, toUtcDate }
