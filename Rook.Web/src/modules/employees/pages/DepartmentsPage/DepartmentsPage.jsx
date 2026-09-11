@@ -1,8 +1,9 @@
 import './DepartmentsPage.css'
 
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { useApiFetch } from '@services/api/useApiFetch.js'
 import { useLiveConnection } from '@services/realtime/useLiveConnection.js'
+import { useResilientLoad } from '@services/api/useResilientLoad.js'
 import { useToast } from '@app/providers/ToastProvider.jsx'
 import { createDepartment, deleteDepartment, getDepartments, updateDepartment } from '@services/api/departmentsApi.js'
 import { DataTable } from '@shared/components/composite/DataTable'
@@ -66,6 +67,7 @@ export function DepartmentsPage() {
   const [loadError, setLoadError] = useState(null)
   const [query, setQuery] = useState('')
   const tableRef = useRef(null)
+  const [cellHighlightEnabled, setCellHighlightEnabled] = useState(true)
 
   // The backend now excludes the calling connection from its own
   // ListChanged broadcast (GroupExcept, keyed off the connection id we
@@ -86,13 +88,17 @@ export function DepartmentsPage() {
       setLoadError(null)
     } catch (err) {
       setLoadError(err.message)
+      throw err // rethrow — useResilientLoad needs to see the failure to know a retry is due
     }
   }
 
-  useEffect(() => {
-    loadDepartments()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Auto-refreshes this page's data the moment the app's shared
+  // connection comes back after an outage — no manual action needed. The
+  // "been down too long, sign the person out" decision doesn't live here
+  // any more; that's useConnectivityWatchdog, called once in App.jsx so
+  // it tracks outages across page navigation, not per-page like this used
+  // to.
+  const { retryNow } = useResilientLoad(loadDepartments)
 
   useLiveConnection('DepartmentList', {
     ListChanged: () => setStaleBanner(true),
@@ -124,7 +130,7 @@ export function DepartmentsPage() {
 
   async function handleRefresh() {
     setStaleBanner(false)
-    await loadDepartments()
+    retryNow()
   }
 
   async function submitForm(e) {
@@ -248,11 +254,17 @@ export function DepartmentsPage() {
                   label: 'Refresh table',
                   icon: 'refresh',
                   onClick: async () => {
-                    await loadDepartments()
-                    push({ tone: 'success', title: 'Table refreshed' })
+                    const success = await retryNow()
+                    if (success) push({ tone: 'success', title: 'Table refreshed' })
                   },
                 },
                 { key: 'export', label: 'Export to Excel', icon: 'download', onClick: () => tableRef.current?.exportToExcel('departments') },
+                {
+                  key: 'toggle-highlight',
+                  label: cellHighlightEnabled ? 'Disable cell highlighting' : 'Enable cell highlighting',
+                  icon: 'grid',
+                  onClick: () => tableRef.current?.toggleCellHighlight(),
+                },
               ]}
             />
             <div className="table-toolbar__spacer" />
@@ -263,6 +275,7 @@ export function DepartmentsPage() {
 
           <DataTable
             ref={tableRef}
+            onCellHighlightChange={setCellHighlightEnabled}
             tableId="departments"
             columns={columns}
             rows={filtered}
@@ -274,7 +287,7 @@ export function DepartmentsPage() {
             showSelected={false}
             createLabel="New Department"
             onCreate={openCreate}
-            onEdit={openEdit} 
+            onEdit={openEdit}
             onDelete={handleDelete}
             recordLabel="department"
             deleteConfirmSeconds={2}

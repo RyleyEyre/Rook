@@ -3,8 +3,8 @@
    bordered table itself, and the "top" actions mode's select column +
    bulk-action toolbar. */
 
-.table-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.table-toolbar .field { margin-bottom: 0; min-width: 240px; flex: 1; }
+.table-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.table-toolbar .field { margin-bottom: 0; min-width: 80px; flex: 1; }
 .table-toolbar__spacer { flex: 1; }
 .table-toolbar__count { font-size: 12.5px; color: var(--color-text-muted); white-space: nowrap; }
 
@@ -12,7 +12,7 @@
   border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-panel);
   box-shadow: var(--shadow-sm);
 }
-.table-scroll { max-height: 560px; overflow-y: auto; overflow-x: auto; padding-bottom: 8px; }
+.table-scroll { max-height: 560px; overflow-y: auto; overflow-x: auto; }
 
 /* Custom scrollbar matching the theme instead of the browser default —
    Firefox via scrollbar-width/-color, everyone else via the -webkit-
@@ -80,6 +80,10 @@
    selection instead of just highlighting running text. */
 .data-table tbody { user-select: none; }
 .data-table tbody td { position: relative; cursor: cell; }
+/* Cell highlighting turned off for this table — back to plain native text
+   selection instead of the drag-a-range behavior. */
+.data-table.cell-highlight-disabled tbody { user-select: text; }
+.data-table.cell-highlight-disabled tbody td { cursor: auto; }
 .data-table tbody td.is-cell-selected { background: rgba(var(--color-accent-rgb), 0.12); }
 .data-table tbody tr:hover td.is-cell-selected { background: rgba(var(--color-accent-rgb), 0.16); }
 /* One solid rectangle around the whole selection, not a box around every
@@ -96,7 +100,7 @@
 .data-table .cell-mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-muted); }
 .data-table .cell-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .data-table .cell-name-wrap { display: flex; align-items: center; gap: 10px; }
-.data-table__select-col { width: 40px; padding-left: 16px !important; padding-right: 8px !important; }
+.data-table__select-col { width: 50px; padding-left: 16px !important; padding-right: 14px !important; cursor: pointer !important; }
 .data-table__menu-col { width: 44px; padding-left: 4px !important; padding-right: 4px !important; }
 .table-radio { display: inline-flex; }
 
@@ -118,7 +122,3 @@
 .data-table-toolbar__deselect:hover:not(:disabled) { color: var(--color-accent-hover); }
 .data-table-toolbar__deselect:disabled { color: var(--color-text-faint); cursor: not-allowed; text-decoration: none; }
 .data-table-toolbar__actions { display: flex; gap: 4px; flex-wrap: wrap; }
-
-@media (max-width: 640px) {
-  .table-toolbar .field { min-width: 100%; }
-}

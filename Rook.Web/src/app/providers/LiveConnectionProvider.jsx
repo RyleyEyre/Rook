@@ -3,10 +3,10 @@ import { HubConnectionBuilder } from '@microsoft/signalr'
 import { HUB_URL } from '@services/api/config.js'
 import { useAuth } from './AuthProvider.jsx'
 
-// { connection, connectionId }. `connection` is null until the hub has
-// actually finished connecting — consumers (useLiveConnection,
-// useApiFetch) treat that as "not live yet" rather than reaching for a
-// half-open connection.
+// { connection, connectionId }. `connection` is null whenever the hub
+// isn't actually connected (including mid-reconnect) — consumers
+// (useLiveConnection, useApiFetch) treat that as "not live yet" rather
+// than reaching for a half-open connection.
 const LiveConnectionContext = createContext({ connection: null, connectionId: null })
 
 function LiveConnectionProvider({ children }) {
@@ -28,31 +28,62 @@ function LiveConnectionProvider({ children }) {
       return
     }
 
-    const hub = new HubConnectionBuilder()
-      .withUrl(HUB_URL, {
-        accessTokenFactory: () => sessionStorage.getItem('accessToken'),
-      })
-      .withAutomaticReconnect()
-      .build()
-
-    hub.onreconnected(() => setConnectionId(hub.connectionId))
-    hub.onclose(() => setConnectionId(null))
-
     let cancelled = false
+    let retryTimer = null
+    let hub = null
 
-    hub.start()
-      .then(() => {
+    function connect() {
+      hub = new HubConnectionBuilder()
+        .withUrl(HUB_URL, {
+          accessTokenFactory: () => sessionStorage.getItem('accessToken'),
+        })
+        .withAutomaticReconnect()
+        .build()
+
+      hub.onreconnecting(() => {
+        if (cancelled) return
+        setConnection(null)
+        setConnectionId(null)
+      })
+      hub.onreconnected(() => {
         if (cancelled) return
         setConnectionId(hub.connectionId)
         setConnection(hub)
       })
-      .catch((error) => console.log('SignalR connection error', error))
+      hub.onclose(() => {
+        if (cancelled) return
+        // withAutomaticReconnect() only retries through its own built-in
+        // sequence (a handful of attempts over ~30s) before giving up for
+        // good and firing this — it will not try again on its own.
+        // Without restarting the whole thing ourselves here, a person
+        // would stay disconnected from real-time updates forever after
+        // any outage longer than that, even once the backend came back.
+        setConnection(null)
+        setConnectionId(null)
+        retryTimer = setTimeout(connect, 5000)
+      })
+
+      hub.start()
+        .then(() => {
+          if (cancelled) return
+          setConnectionId(hub.connectionId)
+          setConnection(hub)
+        })
+        .catch((error) => {
+          console.log('SignalR connection error', error)
+          if (cancelled) return
+          retryTimer = setTimeout(connect, 5000)
+        })
+    }
+
+    connect()
 
     return () => {
       cancelled = true
+      if (retryTimer) clearTimeout(retryTimer)
       setConnection(null)
       setConnectionId(null)
-      hub.stop()
+      hub?.stop()
     }
   }, [isAuthenticated])
 

@@ -5,7 +5,7 @@
    name, it's not specific to the employee table — that's just where the
    pattern was first written; see table.css for the actual table styles. */
 
-.table-page { max-width: 1180px; margin: 0 auto; padding: 28px 24px 60px; }
+.table-page { padding: 28px 24px 60px; }
 .table-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
 .table-page__title { margin: 0 0 4px; font-size: 22px; }
 .table-page__subtitle { margin: 0; color: var(--color-text-muted); font-size: 13.5px; }

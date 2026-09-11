@@ -1,4 +1,4 @@
-import { useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useId, useImperativeHandle, useState } from 'react'
 import { cn } from '@shared/utils/cn.js'
 import { Icon } from '@shared/components/primitives/Icon'
 import { Button, IconButton } from '@shared/components/composite/Button'
@@ -6,93 +6,25 @@ import { HoldToConfirmButton, HoldToConfirmIconButton } from '@shared/components
 import { Checkbox } from '@shared/components/composite/Field'
 import { ConfirmModal } from '@shared/components/composite/ConfirmModal'
 import { Menu } from '@shared/components/composite/Menu'
-import { clearTableLayout, getTableLayout, saveTableLayout } from '@shared/utils/tableLayoutStorage.js'
-import { cellText, exportTableToExcel } from '@shared/utils/exportToExcel.js'
+import { exportTableToExcel } from '@shared/utils/exportToExcel.js'
+import { useTableSort } from './useTableSort.js'
+import { useRowSelection } from './useRowSelection.js'
+import { useColumnLayout } from './useColumnLayout.js'
+import { useCellRangeSelection } from './useCellRangeSelection.js'
 
-const DEFAULT_COL_WIDTH = 160
 const DEFAULT_MIN_COL_WIDTH = 100
-const SELECT_COL_WIDTH = 44 // 16px left padding + 18px radio/checkbox + 8px right padding, plus a couple to spare
+const SELECT_COL_WIDTH = 50 // 16px left padding + 18px radio/checkbox + 14px right padding, plus a couple to spare
 const MENU_COL_WIDTH = 44
 const SIDE_ACTIONS_COL_WIDTH = 88
 
-// Computes actual per-column pixel widths for the <colgroup>, given
-// however much space the table currently has to work with (excluding the
-// select/menu/side-actions columns, which are fixed and handled by the
-// caller). Re-runs any time available width changes (window resize,
-// sidebar collapse) so "fill the table" stays true rather than being a
-// one-time initial layout — right up until the user resizes anything, at
-// which point every column gets pinned (see startResize) and this just
-// returns those fixed widths untouched; there's no "flexible" column left
-// to redistribute space to any more. If the sum of every column's floor
-// (pinned width, or minWidth) already exceeds the available space,
-// there's nothing left to give — everyone sits at their floor and the
-// table overflows its container, which is exactly what should make the
-// horizontal scrollbar appear rather than squeezing columns unreadably
-// thin.
-function computeColumnWidths({ availableWidth, columns, pinnedWidths, defaultMinWidth }) {
-  const specs = columns.map((col) => ({
-    key: col.key,
-    minWidth: col.minWidth ?? defaultMinWidth,
-    weight: col.width ?? DEFAULT_COL_WIDTH,
-    pinned: pinnedWidths[col.key],
-  }))
-
-  const floorTotal = specs.reduce((sum, s) => sum + (s.pinned ?? s.minWidth), 0)
-  if (availableWidth <= floorTotal) {
-    return Object.fromEntries(specs.map((s) => [s.key, s.pinned ?? s.minWidth]))
-  }
-
-  const flexible = specs.filter((s) => s.pinned == null)
-
-  if (flexible.length === 0) {
-    // Every column is pinned (the user has resized at least once) and
-    // there's room to spare — rather than leaving a gap of empty table
-    // to the right, the last column absorbs it. This only fires when
-    // shrinking has left slack; growing a column only ever *reduces* the
-    // remaining space, so it can't land here.
-    const result = Object.fromEntries(specs.map((s) => [s.key, s.pinned]))
-    const total = specs.reduce((sum, s) => sum + s.pinned, 0)
-    result[specs[specs.length - 1].key] += availableWidth - total
-    return result
-  }
-
-  const pinnedTotal = specs.reduce((sum, s) => sum + (s.pinned ?? 0), 0)
-  const remaining = availableWidth - pinnedTotal
-  const weightTotal = flexible.reduce((sum, s) => sum + s.weight, 0) || 1
-
-  const result = {}
-  let flexTotal = 0
-  let absorberKey = null
-  let absorberShare = -Infinity
-
-  // Rounding each column's share independently (unavoidable — a column
-  // can't be 182.4px wide) can land the *sum* a pixel or two off the
-  // actual target, in either direction. Track the largest column that
-  // still has room above its own floor, so any leftover can be folded
-  // into it — that's what makes the columns fill *exactly* to
-  // availableWidth instead of a rounding residue tripping the scrollbar
-  // on every single render.
-  flexible.forEach((s) => {
-    const raw = (s.weight / weightTotal) * remaining
-    const share = Math.max(s.minWidth, Math.round(raw))
-    result[s.key] = share
-    flexTotal += share
-    if (share > s.minWidth && share > absorberShare) {
-      absorberShare = share
-      absorberKey = s.key
-    }
-  })
-
-  const leftover = remaining - flexTotal
-  if (leftover !== 0 && absorberKey) {
-    const floor = flexible.find((s) => s.key === absorberKey).minWidth
-    result[absorberKey] = Math.max(floor, result[absorberKey] + leftover)
-  }
-
-  specs.forEach((s) => { if (s.pinned != null) result[s.key] = s.pinned })
-  return result
-}
-
+// This component is an orchestrator, not where the logic lives — each of
+// sorting, row selection, column layout (order/resize/persistence), and
+// cell-range selection (drag-select/copy/highlight-toggle) is its own
+// hook file alongside this one. That split exists because this component
+// used to be ~850 lines covering ten-plus distinct concerns in one place;
+// the public API (this component, one import, one consistent set of
+// props) hasn't changed, only how the internals are organized.
+//
 // showActionsMenu: independent of actionsPosition — a compact per-row
 // "..." menu (Edit / Delete / whatever's in `rowActions`), replacing the
 // per-row icon pair actionsPosition="side" would otherwise render so
@@ -148,6 +80,11 @@ export function DataTable({
   // someone drag columns around wouldn't make sense).
   resizableColumns = true,
   reorderableColumns = true,
+  // Fires once on mount with the initial (possibly persisted) value, and
+  // again on every toggle — lets a page mirror this state locally for
+  // something like a menu item's label ("Disable"/"Enable cell
+  // highlighting"), since the actual state lives inside this component.
+  onCellHighlightChange,
   // A ref the caller can use for imperative table actions:
   // resetColumnLayout() and exportToExcel(filename) — both live here
   // rather than as toolbar props/buttons, since where the trigger UI for
@@ -159,203 +96,35 @@ export function DataTable({
   ref,
 }) {
   const instanceId = useId()
-  const [sort, setSort] = useState(initialSort)
-  const [selected, setSelected] = useState(() => new Set())
   const [pendingDelete, setPendingDelete] = useState(null)
 
-  // Column order + widths, seeded once from whatever was last saved for
-  // this tableId (sessionStorage today — see tableLayoutStorage.js for
-  // why it's centralized there). Mirrored into refs alongside state so a
-  // resize/reorder gesture can persist "the other piece" (order while
-  // resizing, widths while reordering) without stale closures, without
-  // needing an effect that would otherwise fire on every drag frame.
-  //
-  // `columnWidths` only ever holds *manually resized* (pinned) columns —
-  // everything else is computed fresh on every render by
-  // computeColumnWidths, it never lives in this state at all.
-  const savedLayout = useMemo(() => getTableLayout(tableId), [tableId])
-  const [columnOrder, setColumnOrderState] = useState(() => savedLayout?.order ?? columns.map((c) => c.key))
-  const [columnWidths, setColumnWidthsState] = useState(() => savedLayout?.widths ?? {})
-  const orderRef = useRef(columnOrder)
-  const widthsRef = useRef(columnWidths)
-
-  function setColumnOrder(next) {
-    orderRef.current = next
-    setColumnOrderState(next)
-  }
-  function setColumnWidths(next) {
-    widthsRef.current = next
-    setColumnWidthsState(next)
-  }
-  function persistLayout() {
-    saveTableLayout(tableId, { order: orderRef.current, widths: widthsRef.current })
-  }
-
-  // The caller's `columns` prop stays the source of truth for what
-  // columns exist and how — this just reorders them per the saved
-  // layout, dropping any saved keys that no longer exist (a column that
-  // got removed from the page) and appending any that do exist but
-  // weren't in a saved layout yet (a column added after someone already
-  // saved a layout, or no layout saved at all).
-  const orderedColumns = useMemo(() => {
-    const byKey = new Map(columns.map((c) => [c.key, c]))
-    const known = columnOrder.filter((key) => byKey.has(key)).map((key) => byKey.get(key))
-    const missing = columns.filter((c) => !columnOrder.includes(c.key))
-    return [...known, ...missing]
-  }, [columns, columnOrder])
-
-  // Tracks how much horizontal room the table actually has, so columns
-  // can fill it by default and reflow when that room changes — a plain
-  // window-resize listener would miss the sidebar being collapsed, which
-  // changes this container's width without the window itself resizing.
-  const scrollRef = useRef(null)
-  const [availableWidth, setAvailableWidth] = useState(0)
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const observer = new ResizeObserver((entries) => setAvailableWidth(entries[0].contentRect.width))
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+  const { sort, toggleSort, sorted } = useTableSort(rows, columns, initialSort)
+  const { selected, toggleRow, allSelected, toggleSelectAll, selectedRows, clearSelection } =
+    useRowSelection({ sorted, rowKey, actionsPosition, selectionMode })
 
   const showSelectCol = actionsPosition === 'top'
   // showActionsMenu takes over the rightmost per-row slot when it's on, so
   // the old side-icons rendering steps aside rather than doubling up.
   const showActionsCol = actionsPosition === 'side' && (showEdit || showDelete) && !showActionsMenu
   const showMenuCol = showActionsMenu
-
   const fixedColsWidth =
     (showSelectCol ? SELECT_COL_WIDTH : 0) +
     (showMenuCol ? MENU_COL_WIDTH : 0) +
     (showActionsCol ? SIDE_ACTIONS_COL_WIDTH : 0)
 
-  const computedWidths = useMemo(
-    () => computeColumnWidths({
-      // -1px safety margin: guards against sub-pixel measurement rounding
-      // from ResizeObserver itself landing a hair over the real available
-      // space, which would trip the scrollbar for no visible reason.
-      availableWidth: Math.max(0, availableWidth - fixedColsWidth - 1),
-      columns: orderedColumns,
-      pinnedWidths: columnWidths,
-      defaultMinWidth: minColumnWidth,
-    }),
-    [availableWidth, fixedColsWidth, orderedColumns, columnWidths, minColumnWidth],
-  )
+  const {
+    orderedColumns, computedWidths, tableWidth, scrollRef,
+    draggedKey, dropBeforeKey, handleDragStart, handleDragOver, handleDrop, handleDragEnd,
+    startResize, resetColumnLayout,
+  } = useColumnLayout({ columns, tableId, minColumnWidth, fixedColsWidth })
 
-  // Explicit rather than left to `width: auto` to infer from the colgroup
-  // — table-layout:fixed's interaction with an auto table width is one of
-  // the genuinely inconsistent corners of the table layout spec across
-  // engines. Computing the exact total ourselves and setting it directly
-  // removes that ambiguity: it matches availableWidth when everything
-  // fits, and legitimately exceeds it (forcing the scrollbar) when it's
-  // supposed to overflow — never silently squeezed back down by the
-  // browser's own idea of what "auto" should do here.
-  const tableWidth = fixedColsWidth + orderedColumns.reduce((sum, c) => sum + (computedWidths[c.key] ?? 0), 0)
-
-  function getMinWidth(key) {
-    return columns.find((c) => c.key === key)?.minWidth ?? minColumnWidth
-  }
-
-  const [draggedKey, setDraggedKey] = useState(null)
-  // Where the dragged column would land if dropped right now — the key
-  // it would sit *before*, or null meaning "at the very end". Driven by
-  // which half of the hovered header the pointer is over, not which
-  // column it's over, so this reads as "insert into this gap" rather
-  // than "swap with this column".
-  const [dropBeforeKey, setDropBeforeKey] = useState(undefined)
-
-  function handleDragStart(e, key) {
-    setDraggedKey(key)
-    e.dataTransfer.effectAllowed = 'move'
-  }
-  function handleDragOver(e, col, index) {
-    e.preventDefault()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const overRightHalf = e.clientX - rect.left > rect.width / 2
-    const beforeKey = overRightHalf ? (orderedColumns[index + 1]?.key ?? null) : col.key
-    setDropBeforeKey(beforeKey)
-  }
-  function handleDrop(e) {
-    e.preventDefault()
-    const beforeKey = dropBeforeKey
-    setDropBeforeKey(undefined)
-    setDraggedKey(null)
-    if (!draggedKey || beforeKey === undefined) return
-    const remaining = orderedColumns.map((c) => c.key).filter((k) => k !== draggedKey)
-    let insertAt = beforeKey === null ? remaining.length : remaining.indexOf(beforeKey)
-    if (insertAt === -1) insertAt = remaining.length
-    remaining.splice(insertAt, 0, draggedKey)
-    setColumnOrder(remaining)
-    persistLayout()
-  }
-  function handleDragEnd() {
-    setDraggedKey(null)
-    setDropBeforeKey(undefined)
-  }
-
-  function startResize(e, key) {
-    e.preventDefault()
-    e.stopPropagation() // don't also toggle sort on a sortable header
-    const startX = e.clientX
-
-    // The moment ANY resize begins, freeze every column at its current
-    // (live, proportionally-filled) width — turning the whole table from
-    // "flexible, fills the container" into "fixed, sized by the user"
-    // in one shot. Without this, only the dragged column would pin,
-    // and the others would keep reflowing to share whatever's left —
-    // exactly the sibling-shrinking behavior that shouldn't happen.
-    // Widening a column after this should only grow the table's total
-    // width (triggering the scrollbar once it exceeds the container),
-    // never steal space from a column the user didn't touch. A no-op
-    // past the first resize, since every column is already pinned by then.
-    const snapshot = { ...widthsRef.current }
-    orderedColumns.forEach((col) => {
-      if (snapshot[col.key] == null) snapshot[col.key] = computedWidths[col.key]
-    })
-    setColumnWidths(snapshot)
-
-    const startWidth = snapshot[key]
-    const floor = getMinWidth(key)
-    let latestWidth = startWidth
-
-    function onMove(moveEvent) {
-      latestWidth = Math.max(floor, startWidth + (moveEvent.clientX - startX))
-      setColumnWidths({ ...widthsRef.current, [key]: latestWidth })
-    }
-    function onUp() {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-      persistLayout()
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-  }
-
-  useEffect(() => {
-    setSelected(new Set())
-  }, [actionsPosition, selectionMode])
-
-  const sorted = useMemo(() => {
-    if (!sort) return rows
-    const column = columns.find((c) => c.key === sort.key)
-    const getValue = column?.sortValue ?? ((row) => row[sort.key])
-    const dir = sort.dir === 'asc' ? 1 : -1
-    return [...rows].sort((a, b) => {
-      const av = getValue(a)
-      const bv = getValue(b)
-      return String(av ?? '').localeCompare(String(bv ?? ''), undefined, { numeric: true }) * dir
-    })
-  }, [rows, sort, columns])
+  const {
+    rootRef, cellSelection, setCellSelection, cellHighlightEnabled, toggleCellHighlight,
+    startCellSelect, extendCellSelect, cellSelectionClass,
+  } = useCellRangeSelection({ tableId, sorted, orderedColumns, scrollRef, onCellHighlightChange })
 
   useImperativeHandle(ref, () => ({
-    // Back to the caller's original column order and the proportional
-    // auto-fill widths — same state as a table that's never been touched.
-    resetColumnLayout() {
-      setColumnOrder(columns.map((c) => c.key))
-      setColumnWidths({})
-      clearTableLayout(tableId)
-    },
+    resetColumnLayout,
     // Exports whatever's currently visible — respects the live sort and
     // column order, not just the original `columns`/`rows` props — since
     // "export what I'm looking at" is the more useful default than
@@ -363,197 +132,14 @@ export function DataTable({
     exportToExcel(filename) {
       exportTableToExcel(filename ?? tableId ?? 'export', orderedColumns, sorted)
     },
-  }), [columns, tableId, orderedColumns, sorted])
+    toggleCellHighlight,
+  }), [resetColumnLayout, tableId, orderedColumns, sorted, toggleCellHighlight])
 
-  function toggleSort(key) {
-    setSort((s) => (s?.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
-  }
-
-  function toggleRow(key) {
-    setSelected((prev) => {
-      if (selectionMode === 'single') return prev.has(key) ? new Set() : new Set([key])
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  const allKeys = useMemo(() => sorted.map(rowKey), [sorted, rowKey])
-  const allSelected = allKeys.length > 0 && allKeys.every((k) => selected.has(k))
-
-  function toggleSelectAll() {
-    setSelected(allSelected ? new Set() : new Set(allKeys))
-  }
-
-  const selectedRows = sorted.filter((row) => selected.has(rowKey(row)))
   const showTopBar = actionsPosition === 'top' || showCreate
-
-  // Excel-style rectangular cell selection + copy. Click-drag across data
-  // cells (never the select/menu/side-actions columns — those aren't
-  // "data") to select a block, then Ctrl/Cmd+C copies it as tab-separated
-  // text, so pasting into an actual spreadsheet reproduces the same grid
-  // — replacing the browser's default "just highlights running text
-  // across cells, copies it as one flat line" behavior entirely.
-  const [cellSelection, setCellSelection] = useState(null) // { anchorRow, anchorCol, endRow, endCol }
-  const isSelectingRef = useRef(false)
-  const rootRef = useRef(null)
-
-  function startCellSelect(rowIndex, colIndex) {
-    setCellSelection((sel) => {
-      const isSameSingleCell = sel
-        && sel.anchorRow === rowIndex && sel.anchorCol === colIndex
-        && sel.endRow === rowIndex && sel.endCol === colIndex
-      if (isSameSingleCell) {
-        // Clicking the one cell that's already selected toggles it off —
-        // also disarming isSelectingRef so a drag continuing from the
-        // same mousedown doesn't immediately re-select; releasing and
-        // starting a fresh mousedown elsewhere begins a new selection
-        // normally.
-        isSelectingRef.current = false
-        return null
-      }
-      isSelectingRef.current = true
-      return { anchorRow: rowIndex, anchorCol: colIndex, endRow: rowIndex, endCol: colIndex }
-    })
-  }
-  function extendCellSelect(rowIndex, colIndex) {
-    if (!isSelectingRef.current) return
-    setCellSelection((sel) => (sel ? { ...sel, endRow: rowIndex, endCol: colIndex } : sel))
-  }
-
-  // Auto-scroll while dragging a selection past the table's edge — without
-  // this, a table taller/wider than its visible area would be impossible
-  // to select all the way to the far end of, since dragging past the
-  // visible edge doesn't naturally scroll a container on its own.
-  // scrollVelocityRef is the "how fast, which direction" state, updated on
-  // every pointer move during a drag; a separate always-running interval
-  // is what actually applies it — decoupled like this because scrolling
-  // needs to keep happening even while the pointer itself is stationary
-  // (held at the edge), which a plain mousemove-driven scroll wouldn't do.
-  const scrollVelocityRef = useRef({ dx: 0, dy: 0 })
-  const lastPointerRef = useRef({ x: 0, y: 0 })
-
-  function updateAutoScroll(e) {
-    lastPointerRef.current = { x: e.clientX, y: e.clientY }
-    if (!isSelectingRef.current || !scrollRef.current) {
-      scrollVelocityRef.current = { dx: 0, dy: 0 }
-      return
-    }
-    const rect = scrollRef.current.getBoundingClientRect()
-    const EDGE = 36
-    const MAX_SPEED = 16
-    const proximity = (dist) => Math.min(1, (EDGE - dist) / EDGE)
-
-    let dy = 0
-    if (e.clientY < rect.top + EDGE) dy = -MAX_SPEED * proximity(e.clientY - rect.top)
-    else if (e.clientY > rect.bottom - EDGE) dy = MAX_SPEED * proximity(rect.bottom - e.clientY)
-
-    let dx = 0
-    if (e.clientX < rect.left + EDGE) dx = -MAX_SPEED * proximity(e.clientX - rect.left)
-    else if (e.clientX > rect.right - EDGE) dx = MAX_SPEED * proximity(rect.right - e.clientX)
-
-    scrollVelocityRef.current = { dx, dy }
-  }
-
-  useEffect(() => {
-    window.addEventListener('mousemove', updateAutoScroll)
-    return () => window.removeEventListener('mousemove', updateAutoScroll)
-  }, [])
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      const { dx, dy } = scrollVelocityRef.current
-      const el = scrollRef.current
-      if (!el || (!dx && !dy)) return
-      el.scrollTop += dy
-      el.scrollLeft += dx
-      // The pointer itself isn't moving while held at the edge, so no
-      // mouseenter fires on newly-revealed cells — find whatever's now
-      // under that stationary point and extend the selection to it
-      // manually, same as if the pointer had genuinely dragged there.
-      const target = document.elementFromPoint(lastPointerRef.current.x, lastPointerRef.current.y)
-      const td = target?.closest('td[data-row-index]')
-      if (td) extendCellSelect(Number(td.dataset.rowIndex), Number(td.dataset.colIndex))
-    }, 16)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    function onMouseUp() {
-      isSelectingRef.current = false
-      scrollVelocityRef.current = { dx: 0, dy: 0 }
-    }
-    // Clicking anywhere outside this table clears the selection — mainly
-    // so a stray Ctrl+C somewhere else on the page (a different table, a
-    // text field) doesn't get silently hijacked by a selection the user
-    // has visually moved on from but never technically cleared.
-    function onMouseDownOutside(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setCellSelection(null)
-    }
-    function onKeyDown(e) {
-      if (e.key === 'Escape') {
-        isSelectingRef.current = false
-        setCellSelection(null)
-      }
-    }
-    window.addEventListener('mouseup', onMouseUp)
-    document.addEventListener('mousedown', onMouseDownOutside)
-    window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.removeEventListener('mouseup', onMouseUp)
-      document.removeEventListener('mousedown', onMouseDownOutside)
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [])
-
-  useEffect(() => {
-    function onCopy(e) {
-      if (!cellSelection) return
-      const minRow = Math.min(cellSelection.anchorRow, cellSelection.endRow)
-      const maxRow = Math.max(cellSelection.anchorRow, cellSelection.endRow)
-      const minCol = Math.min(cellSelection.anchorCol, cellSelection.endCol)
-      const maxCol = Math.max(cellSelection.anchorCol, cellSelection.endCol)
-      const lines = []
-      for (let r = minRow; r <= maxRow; r++) {
-        const row = sorted[r]
-        if (!row) continue
-        const cells = []
-        for (let c = minCol; c <= maxCol; c++) {
-          const col = orderedColumns[c]
-          if (col) cells.push(cellText(col, row))
-        }
-        lines.push(cells.join('\t'))
-      }
-      e.clipboardData.setData('text/plain', lines.join('\n'))
-      e.preventDefault()
-    }
-    document.addEventListener('copy', onCopy)
-    return () => document.removeEventListener('copy', onCopy)
-  }, [cellSelection, sorted, orderedColumns])
-
-  const selectionBounds = cellSelection && {
-    minRow: Math.min(cellSelection.anchorRow, cellSelection.endRow),
-    maxRow: Math.max(cellSelection.anchorRow, cellSelection.endRow),
-    minCol: Math.min(cellSelection.anchorCol, cellSelection.endCol),
-    maxCol: Math.max(cellSelection.anchorCol, cellSelection.endCol),
-  }
-  function cellSelectionClass(rowIndex, colIndex) {
-    if (!selectionBounds) return ''
-    const { minRow, maxRow, minCol, maxCol } = selectionBounds
-    if (rowIndex < minRow || rowIndex > maxRow || colIndex < minCol || colIndex > maxCol) return ''
-    return cn(
-      'is-cell-selected',
-      rowIndex === minRow && 'is-selection-top',
-      rowIndex === maxRow && 'is-selection-bottom',
-      colIndex === minCol && 'is-selection-left',
-      colIndex === maxCol && 'is-selection-right',
-    )
-  }
 
   function handleDelete(targetRows) {
     onDelete?.(targetRows)
-    setSelected(new Set())
+    clearSelection()
   }
 
   function requestDelete() {
@@ -629,7 +215,7 @@ export function DataTable({
                 type="button"
                 className="data-table-toolbar__deselect"
                 disabled={selectedRows.length === 0}
-                onClick={() => setSelected(new Set())}
+                onClick={clearSelection}
               >
                 Deselect all
               </button>
@@ -686,7 +272,7 @@ export function DataTable({
 
       <div className="table-wrap">
         <div className="table-scroll" ref={scrollRef} style={{ maxHeight }}>
-          <table className="data-table" style={{ width: tableWidth }}>
+          <table className={cn('data-table', !cellHighlightEnabled && 'cell-highlight-disabled')} style={{ width: tableWidth }}>
             <colgroup>
               {showSelectCol && <col style={{ width: SELECT_COL_WIDTH }} />}
               {showMenuCol && <col style={{ width: MENU_COL_WIDTH }} />}
@@ -753,12 +339,15 @@ export function DataTable({
                     onClick={showSelectCol ? () => toggleRow(key) : undefined}
                   >
                     {showSelectCol && (
-                      <td className="data-table__select-col" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="data-table__select-col"
+                        onClick={(e) => { e.stopPropagation(); toggleRow(key); setCellSelection(null) }}
+                      >
                         {selectionMode === 'multi' ? (
-                          <Checkbox checked={isSelected} onChange={() => toggleRow(key)} aria-label="Select row" />
+                          <Checkbox checked={isSelected} onChange={() => {}} disabled aria-label="Select row" />
                         ) : (
                           <label className="radio table-radio">
-                            <input type="radio" name={`data-table-select-${instanceId}`} checked={isSelected} onChange={() => toggleRow(key)} />
+                            <input type="radio" name={`data-table-select-${instanceId}`} checked={isSelected} onChange={() => {}} disabled />
                             <span className="radio__dot" />
                           </label>
                         )}
@@ -778,8 +367,8 @@ export function DataTable({
                         data-row-index={rowIndex}
                         data-col-index={colIndex}
                         style={col.align ? { textAlign: col.align } : undefined}
-                        onMouseDown={() => startCellSelect(rowIndex, colIndex)}
-                        onMouseEnter={() => extendCellSelect(rowIndex, colIndex)}
+                        onMouseDown={cellHighlightEnabled ? () => startCellSelect(rowIndex, colIndex) : undefined}
+                        onMouseEnter={cellHighlightEnabled ? () => extendCellSelect(rowIndex, colIndex) : undefined}
                       >
                         {col.render ? col.render(row) : row[col.key]}
                       </td>
