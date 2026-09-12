@@ -15,9 +15,42 @@
 }
 .hold-btn.is-holding .hold-btn__fill { transition: none; }
 .hold-btn:not(.is-holding) .hold-btn__fill { transition: width 180ms ease-out; }
-.hold-btn.is-holding, .hold-btn.is-done { color: var(--color-danger-contrast); }
+/* Theme-aware, not a fixed color — the icon spends the whole holding
+   sweep partly over the still-unfilled (theme-background) portion and
+   partly over the red fill, and no single fixed color reads well against
+   both a light AND a dark theme background *and* a saturated red fill at
+   once. --color-text is already exactly "whatever reads against this
+   theme's own background" (near-black in light mode, pale mint in dark),
+   and it happens to read acceptably against the red fill too in both
+   cases — good enough across all the backdrops this icon can actually
+   sit on, without needing a mix-blend-mode trick to track the fill
+   pixel-by-pixel. */
+.hold-btn.is-holding { color: var(--color-text) !important; }
+/* Stays red (the same color it already is idle) for the whole holding
+   sweep — not white — since the fill only *gradually* covers the button
+   while holding. Switching to white the instant holding starts meant the
+   icon spent most of the gesture sitting on the still-unfilled
+   (transparent) portion, showing whatever's behind it: invisible against
+   a light background, only "accidentally" fine in dark mode where white
+   reads against nearly anything. White only becomes safe once the fill
+   has actually reached 100% and the whole button is solid color —
+   confirming/done/failed, never mid-sweep. */
+.hold-btn.is-done { color: var(--color-danger-contrast) !important; }
 .hold-btn.is-done .hold-btn__fill { width: 100% !important; background: var(--color-success); }
-.hold-btn.is-done { border-color: var(--color-success); color: var(--color-danger-contrast); }
+.hold-btn.is-done { border-color: var(--color-success); }
+/* confirming: hold finished, now genuinely waiting on the real result —
+   stays visually "still active" (same fill/contrast as holding) rather
+   than jumping the gun on a success color before there's actually a
+   result to report. */
+.hold-btn.is-confirming { color: var(--color-danger-contrast) !important; }
+.hold-btn.is-confirming .hold-btn__fill { width: 100% !important; }
+.hold-btn.is-confirming .hold-btn__label svg { animation: spin 0.8s linear infinite; }
+/* failed: the action was rejected (still in use, a network blip,
+   whatever) — this is the whole point of the confirming step existing at
+   all. Stays red (never the success green) and shakes once so it reads
+   as "no", distinct from both the plain held-red and the done-green. */
+.hold-btn.is-failed { color: var(--color-danger-contrast) !important; animation: hold-shake 400ms ease; }
+.hold-btn.is-failed .hold-btn__fill { width: 100% !important; background: var(--color-danger); }
 .hold-btn__label { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 
 /* Matches .btn--sm's metrics exactly (padding/font-size) so this sits at
@@ -42,9 +75,27 @@
 .hold-icon-btn__fill { position: absolute; inset: 0; width: 0; background: var(--color-danger); z-index: -1; }
 .hold-icon-btn.is-holding .hold-icon-btn__fill { transition: none; }
 .hold-icon-btn:not(.is-holding) .hold-icon-btn__fill { transition: width 180ms ease-out; }
-.hold-icon-btn.is-holding, .hold-icon-btn.is-done { color: var(--color-danger-contrast); }
+/* Same reasoning as the full-width button above. */
+.hold-icon-btn.is-holding { color: var(--color-text) !important; }
+/* Same reasoning as the full-width button above — stays red during the
+   partial-fill holding sweep, only switches to white once the fill has
+   fully caught up to covering the whole icon. */
+.hold-icon-btn.is-done { color: var(--color-danger-contrast) !important; }
 .hold-icon-btn.is-done .hold-icon-btn__fill { width: 100% !important; background: var(--color-success); }
+.hold-icon-btn.is-confirming { color: var(--color-danger-contrast) !important; }
+.hold-icon-btn.is-confirming .hold-icon-btn__fill { width: 100% !important; }
+.hold-icon-btn.is-confirming .hold-icon-btn__icon { animation: spin 0.8s linear infinite; }
+.hold-icon-btn.is-failed { color: var(--color-danger-contrast) !important; animation: hold-shake 400ms ease; }
+.hold-icon-btn.is-failed .hold-icon-btn__fill { width: 100% !important; background: var(--color-danger); }
 .hold-icon-btn__icon { position: relative; }
+
+@keyframes hold-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
 
 /* The default (non-"sm") hold-btn's 190px min-width is fine on a normal
    desktop toolbar, but on a narrow viewport that's wide enough on its own

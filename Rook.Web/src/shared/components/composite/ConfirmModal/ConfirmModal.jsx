@@ -66,16 +66,37 @@ export function ConfirmModal({
           <HoldToConfirmButton
             label={matches ? 'Hold to delete' : 'Type the name to unlock'}
             holdingLabel="Keep holding to delete…"
+            confirmingLabel="Deleting…"
             doneLabel="Deleted"
+            failedLabel="Couldn't delete"
             disabled={!matches}
             holdMs={holdMs}
-            onConfirm={() => {
-              onConfirm?.()
+            onConfirm={async () => {
+              // Awaiting lets a rejection reach this button's own
+              // done/failed animation instead of always showing success —
+              // and skips the close below on failure, so the modal (and
+              // whatever error toast the caller already shows) stays
+              // visible rather than vanishing over it.
+              await onConfirm?.()
               setTimeout(close, 700)
             }}
           />
         ) : (
-          <Button variant="danger" icon="trash" disabled={!matches} onClick={() => { onConfirm?.(); close() }}>
+          <Button
+            variant="danger"
+            icon="trash"
+            disabled={!matches}
+            onClick={async () => {
+              try {
+                await onConfirm?.()
+                close()
+              } catch {
+                // Left open on failure — the caller's own toast/error
+                // banner already explains what went wrong; closing here
+                // would just hide that context.
+              }
+            }}
+          >
             Delete {count} {noun}
           </Button>
         )}

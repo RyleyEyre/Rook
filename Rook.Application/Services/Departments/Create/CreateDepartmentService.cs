@@ -35,6 +35,7 @@ public class CreateDepartmentService(
         dbContext.Departments.Add(department);
         await dbContext.SaveChangesAsync();
 
+        Console.WriteLine(connectionId);
         var excludedConnections = connectionId is not null ? new[] { connectionId } : Array.Empty<string>();
         await hubContext.Clients.GroupExcept("DepartmentList", excludedConnections).SendAsync("DepartmentListChanged");
         

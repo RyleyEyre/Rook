@@ -3,7 +3,7 @@ import { cn } from '@shared/utils/cn.js'
 import { Icon } from '@shared/components/primitives/Icon'
 import './HoldToConfirmButton.css'
 
-// How long the "done" checkmark/label shows before the button resets and
+// How long the "done"/"failed" label shows before the button resets and
 // becomes usable again.
 const DONE_DISPLAY_MS = 1200
 
@@ -21,10 +21,21 @@ const DONE_DISPLAY_MS = 1200
  * toolbar's Delete after clearing the selection, needs to be usable again
  * for the next one; getting stuck on the checkmark forever was a bug, not
  * a feature.
+ *
+ * `onConfirm` can return a promise — completing the hold now genuinely
+ * *awaits* it before showing success, rather than assuming success the
+ * instant the hold finishes. That distinction matters for exactly what it
+ * sounds like: a delete that the server rejects (still in use, a network
+ * blip, whatever) used to play the same green checkmark as a delete that
+ * actually worked, because the button had no way to know the difference —
+ * it only knew the *hold* completed, not that the actual action did. A
+ * plain non-promise return (or no return at all) is treated as immediate
+ * success, so this is fully backward-compatible with any caller that
+ * hasn't been updated to signal failure.
  */
 function useHoldProgress(holdMs, onConfirm, disabled) {
   const [progress, setProgress] = useState(0)
-  const [state, setState] = useState('idle') // idle | holding | done
+  const [state, setState] = useState('idle') // idle | holding | confirming | done | failed
   const rafRef = useRef(null)
   const startRef = useRef(0)
   const resetTimerRef = useRef(null)
@@ -37,7 +48,9 @@ function useHoldProgress(holdMs, onConfirm, disabled) {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     rafRef.current = null
     setProgress(0)
-    setState((s) => (s === 'done' ? 'done' : 'idle'))
+    // A pointerup right as the hold completes shouldn't snap a settled
+    // outcome (or the in-flight wait for one) back to idle.
+    setState((s) => (s === 'done' || s === 'failed' || s === 'confirming' ? s : 'idle'))
   }, [])
 
   const tick = useCallback(() => {
@@ -45,20 +58,37 @@ function useHoldProgress(holdMs, onConfirm, disabled) {
     const pct = Math.min(100, (elapsed / holdMs) * 100)
     setProgress(pct)
     if (pct >= 100) {
-      setState('done')
       rafRef.current = null
-      onConfirm?.()
-      resetTimerRef.current = setTimeout(() => {
-        setState('idle')
-        setProgress(0)
-      }, DONE_DISPLAY_MS)
+      setState('confirming')
+      // An async IIFE + try/catch here rather than
+      // Promise.resolve(onConfirm()).catch(...) — that pattern only
+      // catches onConfirm *rejecting*, not onConfirm *throwing
+      // synchronously*, since onConfirm() would already have thrown by
+      // the time Promise.resolve() got a chance to wrap anything. Being
+      // inside an async function normalizes both into the same catch.
+      ;(async () => {
+        try {
+          await onConfirm?.()
+          setState('done')
+          resetTimerRef.current = setTimeout(() => {
+            setState('idle')
+            setProgress(0)
+          }, DONE_DISPLAY_MS)
+        } catch {
+          setState('failed')
+          resetTimerRef.current = setTimeout(() => {
+            setState('idle')
+            setProgress(0)
+          }, DONE_DISPLAY_MS)
+        }
+      })()
       return
     }
     rafRef.current = requestAnimationFrame(tick)
   }, [holdMs, onConfirm])
 
   const start = useCallback((e) => {
-    if (disabled || state === 'done') return
+    if (disabled || state === 'done' || state === 'confirming' || state === 'failed') return
     e.preventDefault()
     setState('holding')
     startRef.current = performance.now()
@@ -78,21 +108,30 @@ function useHoldProgress(holdMs, onConfirm, disabled) {
 }
 
 export function HoldToConfirmButton({
-  label, holdingLabel = 'Keep holding…', doneLabel = 'Removed', onConfirm, disabled, holdMs = 2000, size = 'md',
+  label, holdingLabel = 'Keep holding…', confirmingLabel = 'Confirming…', doneLabel = 'Removed', failedLabel = "Couldn't delete",
+  onConfirm, disabled, holdMs = 2000, size = 'md',
 }) {
   const { progress, state, handlers } = useHoldProgress(holdMs, onConfirm, disabled)
+  const iconSize = size === 'sm' ? 14 : 16
+
+  const icon = state === 'done' ? 'check' : state === 'failed' ? 'x' : state === 'confirming' ? 'spinner' : 'trash'
+  const text = state === 'done' ? doneLabel : state === 'failed' ? failedLabel : state === 'confirming' ? confirmingLabel : state === 'holding' ? holdingLabel : label
 
   return (
     <button
       type="button"
-      className={cn('hold-btn', size === 'sm' && 'hold-btn--sm', state === 'holding' && 'is-holding', state === 'done' && 'is-done')}
+      className={cn(
+        'hold-btn', size === 'sm' && 'hold-btn--sm',
+        state === 'holding' && 'is-holding', state === 'confirming' && 'is-confirming',
+        state === 'done' && 'is-done', state === 'failed' && 'is-failed',
+      )}
       disabled={disabled}
       {...handlers}
     >
       <span className="hold-btn__fill" style={{ width: `${progress}%` }} />
       <span className="hold-btn__label">
-        {state === 'done' ? <Icon name="check" size={size === 'sm' ? 14 : 16} /> : <Icon name="trash" size={size === 'sm' ? 14 : 16} />}
-        {state === 'done' ? doneLabel : state === 'holding' ? holdingLabel : label}
+        <Icon name={icon} size={iconSize} />
+        {text}
       </span>
     </button>
   )
@@ -106,18 +145,23 @@ export function HoldToConfirmButton({
  */
 export function HoldToConfirmIconButton({ icon = 'trash', label, onConfirm, disabled, holdMs = 2000 }) {
   const { progress, state, handlers } = useHoldProgress(holdMs, onConfirm, disabled)
+  const shownIcon = state === 'done' ? 'check' : state === 'failed' ? 'x' : state === 'confirming' ? 'spinner' : icon
 
   return (
     <button
       type="button"
-      className={cn('hold-icon-btn', state === 'holding' && 'is-holding', state === 'done' && 'is-done')}
+      className={cn(
+        'hold-icon-btn',
+        state === 'holding' && 'is-holding', state === 'confirming' && 'is-confirming',
+        state === 'done' && 'is-done', state === 'failed' && 'is-failed',
+      )}
       aria-label={label}
       title={label}
       disabled={disabled}
       {...handlers}
     >
       <span className="hold-icon-btn__fill" style={{ width: `${progress}%` }} />
-      <Icon name={state === 'done' ? 'check' : icon} size={15} className="hold-icon-btn__icon" />
+      <Icon name={shownIcon} size={15} className="hold-icon-btn__icon" />
     </button>
   )
 }

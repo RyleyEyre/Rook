@@ -10,12 +10,13 @@ public class ListDepartmentsService(
     public async Task<List<DepartmentSummary>> List()
     {
         var departments = await dbContext.Departments
+            .OrderBy(d => d.Name)
             .Select(d => new DepartmentSummary(
-                d.Id,
-                d.Name,
-                d.CreatedAt,
-                d.LastEditedAt,
-                d.Employees.Count
+                Id: d.Id,
+                Name: d.Name,
+                CreatedAt: d.CreatedAt,
+                LastEditedAt: d.LastEditedAt,
+                EmployeeCount: d.Employees.Count
             ))
             .ToListAsync();
 

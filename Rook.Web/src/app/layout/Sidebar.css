@@ -11,6 +11,18 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  /* position: sticky already creates its own stacking context — without
+     an explicit z-index here, that whole context (including the nav
+     dropdown's own z-index:70, which only means something *within* it)
+     gets compared against the main content area as a single unit, in
+     plain DOM order. Since the sidebar comes before .layout__main in the
+     markup, it was silently losing to anything in the main content that
+     also creates a stacking context (TopBar's position:sticky at z-index
+     40, in particular) — the dropdown's own z-index never even entered
+     into that comparison. This sits above TopBar (40) and everything in
+     the table, below Menu's portaled panels (95), Modal (100), and Toast
+     (200), which should stay the true top layer regardless. */
+  z-index: 50;
   transition: width var(--transition-fast), padding var(--transition-fast);
 }
 .side-nav__brand { display: flex; align-items: center; gap: 9px; font-weight: 700; padding: 2px 8px 20px; color: var(--color-text); }

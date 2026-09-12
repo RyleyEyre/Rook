@@ -70,10 +70,11 @@ export function DepartmentsPage() {
   const [cellHighlightEnabled, setCellHighlightEnabled] = useState(true)
 
   // The backend now excludes the calling connection from its own
-  // ListChanged broadcast (GroupExcept, keyed off the connection id we
-  // send on every mutating request — see useApiFetch.js). So if this event
-  // fires here, it's genuinely someone else's change, never our own echo —
-  // no client-side guessing needed any more.
+  // DepartmentListChanged broadcast (GroupExcept, keyed off the
+  // connection id we send on every mutating request — see
+  // useApiFetch.js). So if this event fires here, it's genuinely
+  // someone else's change, never our own echo — no client-side
+  // guessing needed any more.
   const [staleBanner, setStaleBanner] = useState(false)
 
   const [modal, setModal] = useState(null) // { mode: 'create' | 'edit', department? } | null
@@ -101,7 +102,7 @@ export function DepartmentsPage() {
   const { retryNow } = useResilientLoad(loadDepartments)
 
   useLiveConnection('DepartmentList', {
-    ListChanged: () => setStaleBanner(true),
+    DepartmentListChanged: () => setStaleBanner(true),
   })
 
   const filtered = useMemo(() => {
@@ -194,6 +195,14 @@ export function DepartmentsPage() {
 
     if (firstError) {
       push({ tone: 'error', title: "Couldn't delete department", message: firstError.message })
+      // Rethrown so the hold-to-delete button (toolbar, row menu, or
+      // ConfirmModal — whichever gesture called this) shows its own
+      // "failed" animation instead of the success checkmark, even when
+      // some rows in a bulk delete DID succeed — the gesture as a whole
+      // didn't fully do what was asked. The toasts above already say
+      // exactly what did and didn't work; this is purely what the
+      // button's own animation reacts to.
+      throw firstError
     }
   }
 
@@ -248,6 +257,7 @@ export function DepartmentsPage() {
               triggerSize={18}
               label="Table options"
               items={[
+                { key: 'reset-widths', label: 'Reset column widths', icon: 'gear', onClick: () => tableRef.current?.resetColumnLayout() },
                 {
                   key: 'refresh',
                   label: 'Refresh table',
@@ -258,7 +268,6 @@ export function DepartmentsPage() {
                   },
                 },
                 { key: 'export', label: 'Export to Excel', icon: 'download', onClick: () => tableRef.current?.exportToExcel('departments') },
-                { key: 'reset-widths', label: 'Reset columns', icon: 'gear', onClick: () => tableRef.current?.resetColumnLayout() },
                 {
                   key: 'toggle-highlight',
                   label: cellHighlightEnabled ? 'Disable cell highlighting' : 'Enable cell highlighting',

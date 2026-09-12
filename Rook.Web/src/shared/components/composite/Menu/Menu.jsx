@@ -94,11 +94,19 @@ export function Menu({ items, label = 'Actions', align = 'end', triggerIcon = 'd
                   <HoldToConfirmButton
                     label={item.label}
                     holdingLabel={item.holdingLabel}
+                    confirmingLabel={item.confirmingLabel}
                     doneLabel={item.doneLabel}
+                    failedLabel={item.failedLabel}
                     holdMs={item.holdMs}
                     disabled={item.disabled}
-                    onConfirm={() => {
-                      item.onClick?.()
+                    onConfirm={async () => {
+                      // Awaiting (not firing-and-forgetting) means a
+                      // rejection here correctly reaches this button's own
+                      // done/failed animation — and, just as importantly,
+                      // skips the auto-close below entirely (the `await`
+                      // throws before reaching it), so a failure stays
+                      // visible instead of the menu vanishing over it.
+                      await item.onClick?.()
                       // Same beat ConfirmModal uses after its own hold
                       // completes — long enough to see the checkmark
                       // before the panel disappears out from under it.
@@ -116,7 +124,14 @@ export function Menu({ items, label = 'Actions', align = 'end', triggerIcon = 'd
                   onClick={(e) => {
                     e.stopPropagation()
                     closeMenu()
-                    item.onClick?.()
+                    // A plain item's onClick can itself return a
+                    // rejecting promise (e.g. requestDeleteFromMenu, when
+                    // deleteConfirmSeconds is 0) — nothing here needs to
+                    // react to that (the caller's own toast already
+                    // explains the failure), but nothing catches it
+                    // either, which would otherwise surface as a stray
+                    // unhandled-rejection console warning.
+                    Promise.resolve(item.onClick?.()).catch(() => {})
                   }}
                 >
                   {item.icon && <Icon name={item.icon} size={15} />}

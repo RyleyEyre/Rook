@@ -1,0 +1,34 @@
+.shift-patterns-page__stale-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.shift-patterns-page__create-row {
+  margin: 12px 0 16px;
+}
+
+.shift-patterns-page__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shift-patterns-page__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.shift-patterns-page__card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.shift-patterns-page__empty {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  padding: 24px 0;
+  text-align: center;
+}

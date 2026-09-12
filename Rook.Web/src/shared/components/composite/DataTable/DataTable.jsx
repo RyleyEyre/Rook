@@ -184,17 +184,24 @@ export function DataTable({
 
   const showTopBar = actionsPosition === 'top' || showCreate
 
-  function handleDelete(targetRows) {
-    onDelete?.(targetRows)
-    clearSelection()
+  async function handleDelete(targetRows) {
+    try {
+      await onDelete?.(targetRows)
+    } finally {
+      // Runs whether the delete succeeded or failed — a failed delete
+      // doesn't remove the row, so there's nothing wrong with also
+      // clearing the selection; the rejection above still propagates to
+      // whichever hold-button/modal called this, for its own animation.
+      clearSelection()
+    }
   }
 
   function requestDelete() {
     if (selectedRows.length > 1) {
       setPendingDelete(selectedRows)
-    } else {
-      handleDelete(selectedRows)
+      return undefined // nothing async yet — the modal's own hold button drives the real result later
     }
+    return handleDelete(selectedRows)
   }
 
   // A row menu click can't offer a hold-to-confirm gesture by itself the
@@ -206,10 +213,10 @@ export function DataTable({
   // plain (non-hold) IconButton/Button used elsewhere when it's 0.
   function requestDeleteFromMenu(row) {
     if (deleteConfirmSeconds <= 0) {
-      handleDelete([row])
-    } else {
-      setPendingDelete([row])
+      return handleDelete([row])
     }
+    setPendingDelete([row])
+    return undefined
   }
 
   function buildRowMenuItems(row) {
@@ -232,8 +239,10 @@ export function DataTable({
           key: 'delete',
           type: 'hold',
           label: 'Hold to delete',
-          holdingLabel: 'Deleting…',
+          holdingLabel: 'Keep holding…',
+          confirmingLabel: 'Deleting…',
           doneLabel: 'Deleted',
+          failedLabel: "Couldn't delete",
           holdMs: deleteConfirmSeconds > 0 ? deleteConfirmSeconds * 1000 : 2000,
           onClick: () => handleDelete([row]),
         })
@@ -284,8 +293,10 @@ export function DataTable({
               deleteConfirmSeconds > 0 ? (
                 <HoldToConfirmButton
                   label="Hold to delete"
-                  holdingLabel="Deleting…"
+                  holdingLabel="Keep holding…"
+                  confirmingLabel="Deleting…"
                   doneLabel={selectedRows.length > 1 ? 'Confirm below…' : 'Deleted'}
+                  failedLabel="Couldn't delete"
                   holdMs={deleteConfirmSeconds * 1000}
                   disabled={selectedRows.length === 0}
                   onConfirm={requestDelete}
@@ -449,7 +460,7 @@ export function DataTable({
                                 onConfirm={() => handleDelete([row])}
                               />
                             ) : (
-                              <IconButton icon="trash" label="Delete" variant="danger" onClick={() => handleDelete([row])} />
+                              <IconButton icon="trash" label="Delete" variant="danger" onClick={() => { handleDelete([row]).catch(() => {}) }} />
                             )
                           )}
                         </div>

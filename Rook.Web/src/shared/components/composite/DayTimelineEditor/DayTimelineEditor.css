@@ -1,0 +1,113 @@
+.day-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-timeline__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-timeline__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.day-timeline__max-hint {
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+}
+
+.day-timeline__clear {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.day-timeline__clear:hover { color: var(--color-accent-hover); }
+
+.day-timeline__hours {
+  position: relative;
+  height: 14px;
+  font-size: 10px;
+  color: var(--color-text-faint);
+}
+
+.day-timeline__hours span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.day-timeline__hours span:first-child { transform: translateX(0); }
+.day-timeline__hours span:last-child { transform: translateX(-100%); }
+
+.day-timeline__track {
+  position: relative;
+  height: 56px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+  cursor: default;
+  touch-action: none; /* dragging the track itself is the gesture, not scrolling */
+}
+
+.day-timeline__track.is-empty { cursor: crosshair; }
+
+.day-timeline__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border);
+  opacity: 0.4;
+}
+
+.day-timeline__tick--hour { opacity: 0.9; }
+
+.day-timeline__block {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  min-width: 24px;
+}
+
+.day-timeline__block.is-dragging { cursor: grabbing; }
+
+.day-timeline__current-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.day-timeline__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  border: none;
+  background: rgba(0, 0, 0, 0.18);
+  cursor: ew-resize;
+  padding: 0;
+}
+
+.day-timeline__handle--start { left: 0; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.day-timeline__handle--end { right: 0; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.day-timeline__handle:hover, .day-timeline__handle:focus-visible { background: rgba(0, 0, 0, 0.32); }

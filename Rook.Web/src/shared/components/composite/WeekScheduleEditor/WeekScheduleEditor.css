@@ -1,0 +1,64 @@
+.week-schedule-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.week-schedule-editor__day {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-panel-2);
+  overflow: hidden;
+}
+
+.week-schedule-editor__day.is-open {
+  border-color: var(--color-border-strong);
+}
+
+.week-schedule-editor__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.week-schedule-editor__day-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.week-schedule-editor__summary {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.week-schedule-editor__summary.is-off {
+  color: var(--color-text-faint);
+}
+
+.week-schedule-editor__chevron {
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.week-schedule-editor__day.is-open .week-schedule-editor__chevron {
+  transform: rotate(180deg);
+}
+
+.week-schedule-editor__body {
+  padding: 4px 14px 16px;
+  border-top: 1px solid var(--color-border);
+}

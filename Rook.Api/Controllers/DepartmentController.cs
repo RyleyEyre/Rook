@@ -24,6 +24,8 @@ public class DepartmentController(
         var userId = User.FindFirst("sub")?.Value!;
         var connectionId = Request.Headers["X-SignalR-Connection-Id"].FirstOrDefault();
         var result = await createDepartmentService.Create(request, connectionId, userId);
+
+
         return Ok(
             new
             {
