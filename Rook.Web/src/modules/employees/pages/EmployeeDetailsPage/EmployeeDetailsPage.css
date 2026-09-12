@@ -1,0 +1,67 @@
+.employee-details-page__back {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.employee-details-page__back:hover {
+  color: var(--color-accent);
+}
+
+.employee-details-page__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.employee-details-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.employee-details-page__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.employee-details-page__field {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 13.5px;
+}
+
+.employee-details-page__field-label {
+  color: var(--color-text-muted);
+}
+
+.employee-details-page__field-value {
+  color: var(--color-text);
+  text-align: right;
+  font-weight: 600;
+}
+
+.employee-details-page__link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.employee-details-page__link:hover {
+  color: var(--color-accent-hover);
+}
